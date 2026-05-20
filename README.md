@@ -2,7 +2,7 @@
 
 <br />
 
-# 💝 CelebrateNear
+# 💝 NearYou
 
 ### *Turn ordinary moments into extraordinary emotional experiences*
 
@@ -43,7 +43,7 @@
 
 ---
 
-## ✨ What is CelebrateNear?
+## ✨ What is Near You?
 
 **CelebrateNear** is built on one belief: *the most valuable gift you can give someone is the proof that they are remembered.*
 
