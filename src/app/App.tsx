@@ -42,8 +42,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   
   // Hide nav on creation/upload flows and public landing
   const hideNavPaths = ['/create', '/onboarding', '/upload'];
-  const hideNav = hideNavPaths.some(p => location.pathname.startsWith(p)) 
-    || (location.pathname === '/' && !user);
+  const hideNav = !user || hideNavPaths.some(p => location.pathname.startsWith(p));
 
   const handleNavigate = (screen: string) => {
     window.location.href = screen === 'home' ? '/home' : `/${screen}`;
