@@ -1,5 +1,7 @@
 {
-  "name": "@figma/my-make-file",
+  "name": "celebratenear",
+  "author": "Vamsi Vardhan",
+  "license": "MIT",
   "private": true,
   "version": "0.0.1",
   "type": "module",

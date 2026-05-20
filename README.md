@@ -634,7 +634,7 @@ git push origin feature/your-feature-name
 ```
 MIT License
 
-Copyright (c) 2026 CelebrateNear
+Copyright (c) 2026 Vamsi Vardhan
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
