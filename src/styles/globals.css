@@ -1,0 +1,49 @@
+/* ── Auth Modal Dark Input Overrides ── */
+
+/* Fix browser autofill overriding dark input background */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 40px #1a1008 inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color: #f4845f !important;
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+/* Placeholder color for dark modal inputs */
+.dark-modal-input::placeholder {
+  color: rgba(255, 255, 255, 0.25) !important;
+}
+
+/* Remove default input outline on focus (we handle with border) */
+.dark-modal-input:focus {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Smooth image transitions for slideshow */
+.hero-image-transition {
+  transition: opacity 1.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Custom scrollbar for dark pages */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0d0a08;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(244, 132, 95, 0.3);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(244, 132, 95, 0.5);
+}
+
+/* Smooth font rendering on dark backgrounds */
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
