@@ -3,109 +3,111 @@ import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, Sparkles, Users, Camera, ArrowRight, ChevronDown, Star, MapPin } from 'lucide-react';
 import { AuthModal } from './AuthModal';
+import { useLanguage } from '../../context/LanguageContext';
+import { Language } from '../../lib/translations';
 
 interface HomePageProps {
   onNavigate?: (screen: string) => void;
 }
 
-const HERO_SLIDES = [
+const getHeroSlides = (t: any) => [
   {
     image: '/images/hero_sunset.png',
-    tag: 'Every Sunset Is A Promise',
-    headline: 'Some moments are\ntoo precious',
-    highlight: 'to miss.',
-    sub: 'No matter the distance, your love deserves to be felt — right there, in that golden moment.',
+    tag: t('hero.tag1'),
+    headline: t('hero.headline1_1'),
+    highlight: t('hero.headline1_2'),
+    sub: t('hero.sub1'),
   },
   {
     image: '/images/sunset_couple.png',
-    tag: 'Love Across Miles',
-    headline: 'The heart knows\nno distance,',
-    highlight: 'only longing.',
-    sub: 'We bridge the gap between where you are and where your heart wants to be.',
+    tag: t('hero.tag2'),
+    headline: t('hero.headline2_1'),
+    highlight: t('hero.headline2_2'),
+    sub: t('hero.sub2'),
   },
   {
     image: '/images/sunset_family.png',
-    tag: 'Family. Always.',
-    headline: 'They stood by you\nthrough every storm.',
-    highlight: 'Be there for theirs.',
-    sub: 'Family bonds don\'t fade with miles — they deepen with every shared memory.',
+    tag: t('hero.tag3'),
+    headline: t('hero.headline3_1'),
+    highlight: t('hero.headline3_2'),
+    sub: t('hero.sub3'),
   },
 ];
 
-const EMOTION_CARDS = [
+const getEmotionCards = (t: any) => [
   {
     image: '/images/sunset_couple.png',
     emoji: '💑',
-    label: 'For Couples',
-    title: 'Love knows no timezone',
-    desc: 'Keep the spark alive even when you\'re worlds apart. A surprise that lands straight in the heart.',
+    label: t('cardsSection.card1Label'),
+    title: t('cardsSection.card1Title'),
+    desc: t('cardsSection.card1Desc'),
   },
   {
     image: '/images/sunset_family.png',
     emoji: '👨‍👩‍👧‍👦',
-    label: 'For Families',
-    title: 'Together even when apart',
-    desc: 'Your family\'s milestones shouldn\'t pass without you. We make sure they feel you — always.',
+    label: t('cardsSection.card2Label'),
+    title: t('cardsSection.card2Title'),
+    desc: t('cardsSection.card2Desc'),
   },
   {
     image: '/images/sunset_friends.png',
     emoji: '🤝',
-    label: 'For Friendships',
-    title: 'Old friends, forever bonds',
-    desc: 'Some friendships are written in the stars. Celebrate them like the rare treasures they are.',
+    label: t('cardsSection.card3Label'),
+    title: t('cardsSection.card3Title'),
+    desc: t('cardsSection.card3Desc'),
   },
 ];
 
-const HOW_IT_WORKS = [
+const getHowItWorks = (t: any) => [
   {
     step: '01',
-    title: 'Share their story',
-    desc: 'Tell us about the person, the occasion, and what makes your bond irreplaceable.',
+    title: t('howItWorks.step1Title'),
+    desc: t('howItWorks.step1Desc'),
     icon: Heart,
     color: '#e8735a',
   },
   {
     step: '02',
-    title: 'We gather the love',
-    desc: 'Our team personally reaches out to friends and family to collect heartfelt videos, voice notes & messages.',
+    title: t('howItWorks.step2Title'),
+    desc: t('howItWorks.step2Desc'),
     icon: Users,
     color: '#d4a574',
   },
   {
     step: '03',
-    title: 'We craft the magic',
-    desc: 'Every memory is woven into a cinematic, emotionally-crafted experience — tailored just for them.',
+    title: t('howItWorks.step3Title'),
+    desc: t('howItWorks.step3Desc'),
     icon: Camera,
     color: '#c47a5a',
   },
   {
     step: '04',
-    title: 'The moment arrives',
-    desc: 'On the day, they receive something they\'ll carry in their heart long after the sun has set.',
+    title: t('howItWorks.step4Title'),
+    desc: t('howItWorks.step4Desc'),
     icon: Sparkles,
     color: '#b85c38',
   },
 ];
 
-const TESTIMONIALS = [
+const getTestimonials = (t: any) => [
   {
-    quote: "I watched the video they made from 6,000 miles away. My mum called me crying — not from sadness, but because she finally felt how much I love her.",
+    quote: t('testimonials.t1Quote'),
     name: 'Priya Nair',
-    role: 'Daughter living in Toronto 🇨🇦',
+    role: t('testimonials.t1Role'),
     stars: 5,
     avatar: '🌅',
   },
   {
-    quote: "We hadn't spoken properly in months. One sunset memory reel from Nearyou reminded us both — we are still each other's home.",
+    quote: t('testimonials.t2Quote'),
     name: 'Arjun & Meera',
-    role: 'Long-distance couple 💛',
+    role: t('testimonials.t2Role'),
     stars: 5,
     avatar: '🌊',
   },
   {
-    quote: "My father never cries. That evening, sitting on his porch at dusk, he wept watching every voice he loves come together.",
+    quote: t('testimonials.t3Quote'),
     name: 'Rohan Mehta',
-    role: "Son who missed his father's retirement 🎗️",
+    role: t('testimonials.t3Role'),
     stars: 5,
     avatar: '🧡',
   },
@@ -118,24 +120,30 @@ const FLOATING_MESSAGES = [
 ];
 
 export function HomePage({ onNavigate }: HomePageProps) {
+  const { language, setLanguage, t } = useLanguage();
   const [authOpen, setAuthOpen] = useState(false);
   const [authIntent, setAuthIntent] = useState<'explore' | 'create'>('explore');
   const [currentSlide, setCurrentSlide] = useState(0);
   const [floatIndex, setFloatIndex] = useState(0);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    const t = setInterval(() => {
-      setCurrentSlide(s => (s + 1) % HERO_SLIDES.length);
-    }, 6000);
-    return () => clearInterval(t);
-  }, []);
+  const HERO_SLIDES = getHeroSlides(t);
+  const EMOTION_CARDS = getEmotionCards(t);
+  const HOW_IT_WORKS = getHowItWorks(t);
+  const TESTIMONIALS = getTestimonials(t);
 
   useEffect(() => {
-    const t = setInterval(() => {
+    const tInterval = setInterval(() => {
+      setCurrentSlide(s => (s + 1) % HERO_SLIDES.length);
+    }, 6000);
+    return () => clearInterval(tInterval);
+  }, [HERO_SLIDES.length]);
+
+  useEffect(() => {
+    const tInterval = setInterval(() => {
       setFloatIndex(i => (i + 1) % FLOATING_MESSAGES.length);
     }, 3500);
-    return () => clearInterval(t);
+    return () => clearInterval(tInterval);
   }, []);
 
   const handleCTA = (intent: 'explore' | 'create') => {
@@ -200,11 +208,20 @@ export function HomePage({ onNavigate }: HomePageProps) {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="flex items-center gap-3"
           >
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value as Language)}
+              className="text-sm text-[#2d2520] font-medium border border-[#2d2520]/20 rounded-full px-3 py-2 backdrop-blur-sm hover:bg-white/50 transition-all shadow-sm outline-none appearance-none cursor-pointer"
+              style={{ background: 'rgba(255,255,255,0.7)' }}
+            >
+              <option value="en">🌐 EN</option>
+              <option value="te">🌐 తెలుగు</option>
+            </select>
             <button
               onClick={() => handleCTA('explore')}
               className="text-sm text-[#2d2520] font-medium border border-[#2d2520]/20 rounded-full px-6 py-2 backdrop-blur-sm hover:bg-white/50 transition-all shadow-sm"
             >
-              Sign In
+              {t('nav.signIn')}
             </button>
           </motion.div>
         </nav>
@@ -248,13 +265,13 @@ export function HomePage({ onNavigate }: HomePageProps) {
 
               {/* Headline */}
               <h1
-                className="font-bold leading-[1.1] mb-2 text-[#2d2520] drop-shadow-sm"
-                style={{ fontSize: 'clamp(2.8rem, 7vw, 5.5rem)', whiteSpace: 'pre-line' }}
+                className="font-bold leading-[1.1] mb-2 text-[#2d2520] drop-shadow-sm whitespace-pre-line"
+                style={{ fontSize: 'clamp(2.8rem, 7vw, 5.5rem)' }}
               >
                 {slide.headline}
               </h1>
               <h1
-                className="font-bold leading-[1.1] mb-6"
+                className="font-bold leading-[1.1] mb-6 whitespace-pre-line"
                 style={{
                   fontSize: 'clamp(2.8rem, 7vw, 5.5rem)',
                   background: 'linear-gradient(135deg, #d4a574 0%, #e8573a 100%)',
@@ -279,7 +296,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                   style={{ background: 'linear-gradient(135deg, #d4a574 0%, #e8573a 100%)' }}
                 >
                   <Sparkles className="w-4 h-4" />
-                  Create a Surprise Moment
+                  {t('hero.ctaCreate')}
                 </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.04, background: 'rgba(255,255,255,0.9)' }}
@@ -288,7 +305,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                   className="px-9 py-4 rounded-2xl font-medium text-sm flex items-center justify-center gap-2 transition-all text-[#2d2520] shadow-sm"
                   style={{ background: 'rgba(255,255,255,0.7)', border: '1px solid rgba(0,0,0,0.06)', backdropFilter: 'blur(12px)' }}
                 >
-                  Explore Experiences <ArrowRight className="w-4 h-4" />
+                  {t('hero.ctaExplore')} <ArrowRight className="w-4 h-4" />
                 </motion.button>
               </div>
             </motion.div>
@@ -328,8 +345,8 @@ export function HomePage({ onNavigate }: HomePageProps) {
           >
             <Heart className="w-4 h-4 fill-current text-rose-400 animate-pulse" />
             <div>
-              <p className="text-[#2d2520] font-bold text-sm">12,400+</p>
-              <p className="text-[#8a7968] text-xs">emotional moments created</p>
+              <p className="text-[#2d2520] font-bold text-sm">{t('hero.statsCount')}</p>
+              <p className="text-[#8a7968] text-xs">{t('hero.statsDesc')}</p>
             </div>
           </motion.div>
         </div>
@@ -340,7 +357,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
           transition={{ duration: 2, repeat: Infinity }}
           className="absolute bottom-10 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-1"
         >
-          <span className="text-[#8a7968]/50 text-xs tracking-widest uppercase font-semibold">Scroll</span>
+          <span className="text-[#8a7968]/50 text-xs tracking-widest uppercase font-semibold">{t('hero.scroll')}</span>
           <ChevronDown className="w-5 h-5 text-[#8a7968]/50" />
         </motion.div>
       </section>
@@ -354,10 +371,10 @@ export function HomePage({ onNavigate }: HomePageProps) {
           className="max-w-4xl mx-auto text-center"
         >
           <p className="font-light leading-relaxed" style={{ fontSize: 'clamp(1.2rem, 3vw, 2rem)', color: 'rgba(45,37,32,0.6)' }}>
-            Life happens fast. People grow older.{' '}
-            <span className="font-semibold text-[#2d2520]">Sunsets don't wait.</span>{' '}
+            {t('emotionStatement.part1')}{' '}
+            <span className="font-semibold text-[#2d2520]">{t('emotionStatement.part2')}</span>{' '}
             <span style={{ color: '#d4a574' }}>
-              Be emotionally present — even when you physically can't be.
+              {t('emotionStatement.part3')}
             </span>
           </p>
         </motion.div>
@@ -373,19 +390,19 @@ export function HomePage({ onNavigate }: HomePageProps) {
             className="text-center mb-16"
           >
             <span className="text-xs tracking-widest uppercase font-semibold" style={{ color: '#d4a574' }}>
-              Made for every kind of love
+              {t('cardsSection.tag')}
             </span>
             <h2 className="font-bold mt-3 mb-4 text-[#2d2520]" style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)' }}>
-              Because every bond deserves<br />
+              {t('cardsSection.headline1')}<br />
               <span style={{
                 background: 'linear-gradient(135deg, #d4a574, #f4845f)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text'
-              }}>a golden moment.</span>
+              }}>{t('cardsSection.headline2')}</span>
             </h2>
             <p className="font-light max-w-lg mx-auto text-base" style={{ color: 'rgba(45,37,32,0.6)', lineHeight: 1.8 }}>
-              Whether it's the person you love, the family that raised you, or the friend who never left your side — every relationship deserves to be celebrated.
+              {t('cardsSection.sub')}
             </p>
           </motion.div>
 
@@ -424,7 +441,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                     <h3 className="text-[#2d2520] font-bold text-xl mb-2 leading-tight">{card.title}</h3>
                     <p className="text-[#8a7968] text-sm font-light leading-relaxed">{card.desc}</p>
                     <div className="mt-5 flex items-center gap-2 text-rose-400 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <span>Create this moment</span>
+                      <span>{t('cardsSection.createMoment')}</span>
                       <ArrowRight className="w-4 h-4" />
                     </div>
                   </div>
@@ -457,10 +474,10 @@ export function HomePage({ onNavigate }: HomePageProps) {
               className="font-light italic text-[#2d2520] leading-relaxed mb-8"
               style={{ fontSize: 'clamp(1.3rem, 3vw, 2rem)' }}
             >
-              "In the end, it's not the distance that breaks us apart — it's the silence in between. We help you fill that silence with love."
+              {t('quoteSection.quote')}
             </blockquote>
             <p style={{ color: '#d4a574' }} className="font-bold text-sm tracking-widest uppercase">
-              — The Nearyou Promise
+              {t('quoteSection.author')}
             </p>
           </motion.div>
         </div>
@@ -476,10 +493,10 @@ export function HomePage({ onNavigate }: HomePageProps) {
             className="text-center mb-20"
           >
             <span className="text-xs tracking-widest uppercase font-semibold" style={{ color: '#d4a574' }}>
-              Simple. Personal. Unforgettable.
+              {t('howItWorks.tag')}
             </span>
-            <h2 className="font-bold mt-3 mb-4 text-[#2d2520]" style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)' }}>
-              How we turn your love<br />into a lasting memory
+            <h2 className="font-bold mt-3 mb-4 text-[#2d2520] whitespace-pre-line" style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)' }}>
+              {t('howItWorks.headline')}
             </h2>
           </motion.div>
 
@@ -529,23 +546,23 @@ export function HomePage({ onNavigate }: HomePageProps) {
             className="text-center mb-16"
           >
             <span className="text-xs tracking-widest uppercase font-semibold" style={{ color: '#d4a574' }}>
-              Real stories. Real tears. Real love.
+              {t('testimonials.tag')}
             </span>
             <h2 className="font-bold mt-3 text-[#2d2520]" style={{ fontSize: 'clamp(1.8rem, 4vw, 3rem)' }}>
-              Sunsets witnessed together,<br />
+              {t('testimonials.headline1')}<br />
               <span style={{
                 background: 'linear-gradient(135deg, #d4a574, #f4845f)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text'
-              }}>even across oceans.</span>
+              }}>{t('testimonials.headline2')}</span>
             </h2>
           </motion.div>
 
           <div className="grid md:grid-cols-3 gap-6">
-            {TESTIMONIALS.map((t, i) => (
+            {TESTIMONIALS.map((tItem, i) => (
               <motion.div
-                key={t.name}
+                key={tItem.name}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -558,23 +575,23 @@ export function HomePage({ onNavigate }: HomePageProps) {
               >
                 {/* Stars */}
                 <div className="flex gap-1 mb-4">
-                  {Array.from({ length: t.stars }).map((_, s) => (
+                  {Array.from({ length: tItem.stars }).map((_, s) => (
                     <Star key={s} className="w-4 h-4 fill-current" style={{ color: '#d4a574' }} />
                   ))}
                 </div>
 
                 <p className="font-light italic leading-relaxed mb-6 flex-1" style={{ color: '#8a7968', lineHeight: 1.9, fontSize: '0.95rem' }}>
-                  "{t.quote}"
+                  {tItem.quote}
                 </p>
 
                 <div className="flex items-center gap-3 pt-4" style={{ borderTop: '1px solid rgba(0,0,0,0.06)' }}>
                   <div className="w-10 h-10 rounded-full flex items-center justify-center text-xl"
                     style={{ background: 'rgba(212,165,116,0.15)' }}>
-                    {t.avatar}
+                    {tItem.avatar}
                   </div>
                   <div>
-                    <p className="font-semibold text-sm text-[#2d2520]">{t.name}</p>
-                    <p className="font-light text-xs mt-0.5" style={{ color: '#8a7968' }}>{t.role}</p>
+                    <p className="font-semibold text-sm text-[#2d2520]">{tItem.name}</p>
+                    <p className="font-light text-xs mt-0.5" style={{ color: '#8a7968' }}>{tItem.role}</p>
                   </div>
                 </div>
               </motion.div>
@@ -604,11 +621,11 @@ export function HomePage({ onNavigate }: HomePageProps) {
             viewport={{ once: true }}
           >
             <div className="text-5xl mb-6">🌇</div>
-            <h2 className="font-bold text-[#2d2520] mb-4" style={{ fontSize: 'clamp(1.8rem, 4vw, 3.2rem)' }}>
-              Don't let another sunset pass<br />without telling them.
+            <h2 className="font-bold text-[#2d2520] mb-4 whitespace-pre-line" style={{ fontSize: 'clamp(1.8rem, 4vw, 3.2rem)' }}>
+              {t('ctaSection.headline')}
             </h2>
             <p className="font-light mb-10 max-w-xl mx-auto leading-relaxed" style={{ color: '#8a7968', fontSize: '1.1rem' }}>
-              The people you love deserve to feel your presence — not just read your texts. Create something they'll remember long after the last golden light fades.
+              {t('ctaSection.sub')}
             </p>
 
             <div className="flex flex-col sm:flex-row justify-center gap-4">
@@ -620,7 +637,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 style={{ background: 'linear-gradient(135deg, #d4a574 0%, #e8573a 100%)' }}
               >
                 <Heart className="w-5 h-5 fill-current" />
-                Create Their Golden Moment
+                {t('ctaSection.btnCreate')}
               </motion.button>
               <motion.button
                 whileHover={{ scale: 1.05, background: 'rgba(255,255,255,1)' }}
@@ -629,7 +646,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                 className="px-10 py-5 rounded-2xl font-medium text-base flex items-center justify-center gap-2 text-[#2d2520] transition-all shadow-sm"
                 style={{ background: 'rgba(255,255,255,0.8)', border: '1px solid rgba(0,0,0,0.06)', backdropFilter: 'blur(8px)' }}
               >
-                Explore All Experiences <ArrowRight className="w-5 h-5" />
+                {t('ctaSection.btnExplore')} <ArrowRight className="w-5 h-5" />
               </motion.button>
             </div>
           </motion.div>
@@ -643,7 +660,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
           <span className="font-bold tracking-tight text-[#2d2520] text-lg lowercase">nearyou<span style={{ color: '#d4a574' }}>.</span></span>
         </div>
         <p className="text-xs font-light" style={{ color: '#8a7968' }}>
-          Emotional presence, preserved forever. © 2026 Nearyou
+          {t('footer.text')}
         </p>
       </footer>
 

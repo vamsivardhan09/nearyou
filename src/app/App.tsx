@@ -61,10 +61,13 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   );
 }
 
+import { LanguageProvider } from '../context/LanguageContext';
+
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
+    <LanguageProvider>
+      <AuthProvider>
+        <BrowserRouter>
         <div className="min-h-screen pb-16 md:pb-0 font-light text-[#2d2520]" style={{ background: '#fdfbf8' }}>
           <AppLayout>
             <Routes>
@@ -120,5 +123,6 @@ export default function App() {
         </div>
       </BrowserRouter>
     </AuthProvider>
+    </LanguageProvider>
   );
 }
