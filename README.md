@@ -2,7 +2,7 @@
 
 <br />
 
-# 💝 CelebrateNear
+# 💝 Nearyou
 
 ### *Turn ordinary moments into extraordinary emotional experiences*
 
