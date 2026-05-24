@@ -181,11 +181,11 @@ export function HomePage({ onNavigate }: HomePageProps) {
             />
             {/* Deep cinematic gradient overlay */}
             <div className="absolute inset-0" style={{
-              background: 'linear-gradient(180deg, rgba(253,251,248,0.4) 0%, rgba(253,251,248,0.2) 35%, rgba(253,251,248,0.7) 70%, rgba(253,251,248,1) 100%)'
+              background: 'transparent'
             }} />
             {/* Side vignette */}
             <div className="absolute inset-0" style={{
-              background: 'linear-gradient(90deg, rgba(255,255,255,0.6) 0%, transparent 40%, transparent 60%, rgba(255,255,255,0.4) 100%)'
+              background: 'transparent'
             }} />
           </motion.div>
         </AnimatePresence>
@@ -428,7 +428,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                   />
                   {/* Overlay */}
                   <div className="absolute inset-0" style={{
-                    background: 'linear-gradient(to top, rgba(255,255,255,0.98) 0%, rgba(255,255,255,0.7) 40%, transparent 100%)'
+                    background: 'linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 50%)'
                   }} />
 
                   {/* Content */}
@@ -438,8 +438,8 @@ export function HomePage({ onNavigate }: HomePageProps) {
                       style={{ background: 'rgba(212,165,116,0.15)', color: '#d4a574' }}>
                       {card.label}
                     </span>
-                    <h3 className="text-[#2d2520] font-bold text-xl mb-2 leading-tight">{card.title}</h3>
-                    <p className="text-[#8a7968] text-sm font-light leading-relaxed">{card.desc}</p>
+                    <h3 className="text-white font-bold text-xl mb-2 leading-tight">{card.title}</h3>
+                    <p className="text-gray-200 text-sm font-light leading-relaxed">{card.desc}</p>
                     <div className="mt-5 flex items-center gap-2 text-rose-400 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                       <span>{t('cardsSection.createMoment')}</span>
                       <ArrowRight className="w-4 h-4" />
@@ -461,7 +461,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
             className="w-full h-full object-cover"
             style={{ objectPosition: 'center 60%' }}
           />
-          <div className="absolute inset-0" style={{ background: 'rgba(253,251,248,0.85)' }} />
+          <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.4)' }} />
         </div>
         <div className="relative z-10 max-w-3xl mx-auto text-center">
           <motion.div
@@ -471,7 +471,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
           >
             <div className="text-5xl mb-8">🌅</div>
             <blockquote
-              className="font-light italic text-[#2d2520] leading-relaxed mb-8"
+              className="font-light italic text-white leading-relaxed mb-8"
               style={{ fontSize: 'clamp(1.3rem, 3vw, 2rem)' }}
             >
               {t('quoteSection.quote')}
@@ -610,7 +610,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
             style={{ objectPosition: 'center 25%' }}
           />
           <div className="absolute inset-0" style={{
-            background: 'linear-gradient(135deg, rgba(255,255,255,0.95) 0%, rgba(253,251,248,0.92) 100%)'
+            background: 'rgba(0,0,0,0.4)'
           }} />
         </div>
 
@@ -621,10 +621,10 @@ export function HomePage({ onNavigate }: HomePageProps) {
             viewport={{ once: true }}
           >
             <div className="text-5xl mb-6">🌇</div>
-            <h2 className="font-bold text-[#2d2520] mb-4 whitespace-pre-line" style={{ fontSize: 'clamp(1.8rem, 4vw, 3.2rem)' }}>
+            <h2 className="font-bold text-white mb-4 whitespace-pre-line" style={{ fontSize: 'clamp(1.8rem, 4vw, 3.2rem)' }}>
               {t('ctaSection.headline')}
             </h2>
-            <p className="font-light mb-10 max-w-xl mx-auto leading-relaxed" style={{ color: '#8a7968', fontSize: '1.1rem' }}>
+            <p className="font-light mb-10 max-w-xl mx-auto leading-relaxed" style={{ color: '#e5e5e5', fontSize: '1.1rem' }}>
               {t('ctaSection.sub')}
             </p>
 
