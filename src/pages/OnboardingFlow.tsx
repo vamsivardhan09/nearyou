@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, Heart, Sparkles, User, Mail, Phone, CheckCircle2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
-const OTP_LENGTH = 8;
+const OTP_LENGTH = 6;
 
 function formatPhone(raw: string) {
   const d = raw.replace(/\D/g, '').slice(0, 10);
@@ -271,7 +271,7 @@ export function OnboardingFlow() {
           style={{ background: 'rgba(212,165,116,0.08)', border: '1px solid rgba(212,165,116,0.2)' }}>
           <Sparkles className="w-4 h-4 flex-shrink-0" style={{ color: '#d4a574' }} />
           <p className="text-sm font-light" style={{ color: '#8a6a50' }}>
-            Check your email inbox for the 8-digit verification code
+            Check your email inbox for the 6-digit verification code
           </p>
         </div>
 
