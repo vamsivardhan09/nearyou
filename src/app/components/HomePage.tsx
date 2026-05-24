@@ -179,19 +179,19 @@ export function HomePage({ onNavigate }: HomePageProps) {
               className="w-full h-full object-cover"
               style={{ objectPosition: 'center 30%' }}
             />
-            {/* Deep cinematic gradient overlay */}
+            {/* Subtle warm-white top vignette for text readability */}
             <div className="absolute inset-0" style={{
-              background: 'transparent'
+              background: 'linear-gradient(180deg, rgba(253,251,248,0.35) 0%, rgba(253,251,248,0.05) 40%, rgba(253,251,248,0.0) 65%, rgba(253,251,248,0.95) 100%)'
             }} />
-            {/* Side vignette */}
+            {/* Left-side soft glow so text pops */}
             <div className="absolute inset-0" style={{
-              background: 'transparent'
+              background: 'linear-gradient(90deg, rgba(255,255,255,0.18) 0%, transparent 35%)'
             }} />
           </motion.div>
         </AnimatePresence>
 
         {/* Nav */}
-        <nav className="relative z-30 flex items-center justify-between px-6 md:px-14 pt-7">
+        <nav className="relative z-30 flex items-center justify-between px-6 md:px-16 pt-0" style={{ background: 'rgba(255,255,255,0.55)', backdropFilter: 'blur(16px)', borderBottom: '1px solid rgba(255,255,255,0.3)', paddingTop: '14px', paddingBottom: '14px' }}>
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}

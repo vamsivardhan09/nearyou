@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, Calendar, PlusCircle, LogOut, Bell, Gift, Clock, Star, ArrowRight, Users, Sparkles } from 'lucide-react';
+import { Heart, Calendar, PlusCircle, LogOut, Bell, Gift, Clock, Star, ArrowRight, Users, Sparkles, User, X, Phone, Mail, Shield, ChevronDown } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { PACKAGES } from '../../lib/packagesData';
@@ -39,9 +39,10 @@ const MEMORIES = [
 
 export function UserHome() {
   const navigate = useNavigate();
-  const { displayName, signOut } = useAuth();
+  const { displayName, signOut, user } = useAuth();
   const [nudgeIdx, setNudgeIdx] = useState(0);
   const [greetingIdx] = useState(() => Math.floor(Math.random() * 3));
+  const [showProfile, setShowProfile] = useState(false);
 
   useEffect(() => {
     const t = setInterval(() => setNudgeIdx(i => (i + 1) % NUDGES.length), 3500);
@@ -56,28 +57,178 @@ export function UserHome() {
   return (
     <div className="min-h-screen font-light pb-28 text-[#2d2520]" style={{ background: '#fdfbf8' }}>
 
-      {/* NAV */}
-      <div className="sticky top-0 z-50 backdrop-blur-md" style={{ background: 'rgba(255,255,255,0.85)', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
-        <div className="max-w-5xl mx-auto px-5 py-3.5 flex items-center justify-between">
-          <div className="flex items-center">
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#d4a574] to-[#f4845f] text-[1.6rem] leading-none font-extrabold tracking-tighter lowercase font-logo drop-shadow-sm">nearyou.</span>
+      {/* ── PROFILE SIDE PANEL ─────────────────────────────── */}
+      <AnimatePresence>
+        {showProfile && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[60] bg-black/30 backdrop-blur-sm"
+              onClick={() => setShowProfile(false)}
+            />
+            {/* Panel */}
+            <motion.div
+              initial={{ x: '100%', opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              exit={{ x: '100%', opacity: 0 }}
+              transition={{ type: 'spring', damping: 28, stiffness: 300 }}
+              className="fixed top-0 right-0 h-full z-[70] w-full max-w-sm shadow-2xl"
+              style={{ background: '#fdfbf8' }}
+            >
+              {/* Panel Header */}
+              <div className="px-6 py-5 flex items-center justify-between" style={{ borderBottom: '1px solid rgba(0,0,0,0.06)', background: 'rgba(255,255,255,0.9)' }}>
+                <div className="flex items-center gap-2">
+                  <User className="w-4 h-4 text-[#d4a574]" />
+                  <span className="font-semibold text-sm text-[#2d2520]">My Profile</span>
+                </div>
+                <button onClick={() => setShowProfile(false)} className="w-8 h-8 rounded-xl flex items-center justify-center hover:bg-black/5 transition-colors">
+                  <X className="w-4 h-4 text-[#8a7968]" />
+                </button>
+              </div>
+
+              <div className="p-6 space-y-6 overflow-y-auto h-[calc(100%-65px)]">
+
+                {/* Avatar & Name */}
+                <div className="flex flex-col items-center text-center py-6 rounded-3xl" style={{ background: 'linear-gradient(135deg, rgba(212,165,116,0.12), rgba(232,87,58,0.06))', border: '1px solid rgba(212,165,116,0.2)' }}>
+                  <div className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold text-white mb-4 shadow-lg" style={{ background: 'linear-gradient(135deg, #d4a574, #e8573a)' }}>
+                    {user?.fullName?.slice(0, 1).toUpperCase() || 'U'}
+                  </div>
+                  <h2 className="font-bold text-xl text-[#2d2520] mb-1">{user?.fullName || displayName}</h2>
+                  <span className="text-xs font-medium px-3 py-1 rounded-full" style={{ background: 'rgba(212,165,116,0.15)', color: '#d4a574' }}>nearyou member</span>
+                </div>
+
+                {/* Details */}
+                <div className="space-y-3">
+                  <h3 className="text-xs uppercase tracking-widest font-semibold text-[#8a7968] mb-3">Account Details</h3>
+
+                  <div className="flex items-center gap-4 p-4 rounded-2xl" style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(212,165,116,0.1)' }}>
+                      <User className="w-4 h-4 text-[#d4a574]" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-medium uppercase tracking-wider text-[#8a7968]">Full Name</p>
+                      <p className="font-semibold text-sm text-[#2d2520] mt-0.5">{user?.fullName || '—'}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4 p-4 rounded-2xl" style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(90,158,111,0.1)' }}>
+                      <Phone className="w-4 h-4" style={{ color: '#5a9e6f' }} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-medium uppercase tracking-wider text-[#8a7968]">Phone Number</p>
+                      <p className="font-semibold text-sm text-[#2d2520] mt-0.5">{user?.phone || '—'}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4 p-4 rounded-2xl" style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(122,142,196,0.1)' }}>
+                      <Shield className="w-4 h-4" style={{ color: '#7a8ec4' }} />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-medium uppercase tracking-wider text-[#8a7968]">Member ID</p>
+                      <p className="font-semibold text-sm text-[#2d2520] mt-0.5">{user?.id?.slice(0, 16) || '—'}</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Stats */}
+                <div>
+                  <h3 className="text-xs uppercase tracking-widest font-semibold text-[#8a7968] mb-3">Your Journey</h3>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[
+                      { val: '2', label: 'Surprises', color: '#f4845f' },
+                      { val: '17', label: 'Contributors', color: '#d4a574' },
+                      { val: '34', label: 'Memories', color: '#e8573a' },
+                    ].map((s, i) => (
+                      <div key={i} className="p-3 rounded-2xl text-center" style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.05)' }}>
+                        <p className="font-bold text-xl" style={{ color: s.color }}>{s.val}</p>
+                        <p className="text-[10px] font-light text-[#8a7968] mt-0.5">{s.label}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="space-y-3 pt-2">
+                  <button
+                    onClick={() => { navigate('/dashboard'); setShowProfile(false); }}
+                    className="w-full flex items-center gap-3 p-4 rounded-2xl text-sm font-medium transition-all hover:-translate-y-0.5"
+                    style={{ background: '#ffffff', border: '1px solid rgba(212,165,116,0.3)', color: '#d4a574', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}
+                  >
+                    <Heart className="w-4 h-4" />
+                    View My Dashboard
+                  </button>
+                  <button
+                    onClick={() => { handleSignOut(); setShowProfile(false); }}
+                    className="w-full flex items-center gap-3 p-4 rounded-2xl text-sm font-medium transition-all hover:bg-red-50"
+                    style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.06)', color: '#8a7968' }}
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Sign Out
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* ── STICKY NAV ─────────────────────────────────────── */}
+      <div className="sticky top-0 z-50 backdrop-blur-xl" style={{ background: 'rgba(253,251,248,0.92)', borderBottom: '1px solid rgba(0,0,0,0.06)' }}>
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+
+          {/* Logo */}
+          <div className="flex items-center gap-10">
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#d4a574] to-[#f4845f] text-[1.7rem] leading-none font-extrabold tracking-tighter lowercase drop-shadow-sm">nearyou.</span>
+
+            {/* Desktop Nav Links */}
+            <nav className="hidden md:flex items-center gap-1">
+              {[
+                { label: 'Home', path: '/home' },
+                { label: 'Create Surprise', path: '/create' },
+                { label: 'Memory Stories', path: '/gallery' },
+                { label: 'Dashboard', path: '/dashboard' },
+                { label: 'Packages', path: '/packages' },
+              ].map((link) => (
+                <button
+                  key={link.path}
+                  onClick={() => navigate(link.path)}
+                  className="px-4 py-2 rounded-xl text-sm font-medium transition-all hover:bg-[rgba(212,165,116,0.1)] hover:text-[#d4a574]"
+                  style={{ color: '#8a7968' }}
+                >
+                  {link.label}
+                </button>
+              ))}
+            </nav>
           </div>
-          <div className="flex items-center gap-2">
-            <button className="relative w-8 h-8 rounded-full flex items-center justify-center" style={{ background: 'rgba(212,165,116,0.1)' }}>
-              <Bell className="w-3.5 h-3.5 text-[#d4a574]" />
-              <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-[#f4845f]" />
+
+          {/* Right Actions */}
+          <div className="flex items-center gap-3">
+            {/* Notification */}
+            <button className="relative w-9 h-9 rounded-full flex items-center justify-center transition-colors hover:bg-[rgba(212,165,116,0.1)]" style={{ background: 'rgba(212,165,116,0.08)' }}>
+              <Bell className="w-4 h-4 text-[#d4a574]" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#f4845f]" />
             </button>
-            <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium text-white" style={{ background: 'linear-gradient(135deg,#d4a574,#e8573a)' }}>
-              {displayName?.slice(0,1).toUpperCase() || 'U'}
-            </div>
-            <button onClick={handleSignOut} className="text-xs font-light px-3 py-1.5 rounded-xl transition-colors hover:bg-black/5" style={{ color: '#8a7968' }}>
-              <LogOut className="w-3.5 h-3.5" />
+
+            {/* Profile Avatar — clickable */}
+            <button
+              onClick={() => setShowProfile(true)}
+              className="flex items-center gap-2.5 px-3 py-1.5 rounded-2xl transition-all hover:shadow-md group"
+              style={{ background: '#ffffff', border: '1px solid rgba(212,165,116,0.25)', boxShadow: '0 2px 10px rgba(0,0,0,0.04)' }}
+            >
+              <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white" style={{ background: 'linear-gradient(135deg, #d4a574, #e8573a)' }}>
+                {displayName?.slice(0, 1).toUpperCase() || 'U'}
+              </div>
+              <span className="hidden sm:block text-sm font-medium text-[#2d2520] max-w-[100px] truncate">{displayName}</span>
+              <ChevronDown className="w-3.5 h-3.5 text-[#8a7968] transition-transform group-hover:rotate-180" />
             </button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-5 py-7 space-y-9">
+      <div className="max-w-7xl mx-auto px-6 py-8 space-y-9">
 
         {/* HERO */}
         <section>
