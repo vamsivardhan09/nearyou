@@ -4,7 +4,7 @@ import { X, Mail, User, Phone, ArrowRight, Sparkles, Heart, RotateCcw, CheckCirc
 import { supabase } from '../../lib/supabase';
 
 // ── Constants ──────────────────────────────────────────────────────────────
-const OTP_LENGTH = 6;
+const OTP_LENGTH = 8;
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -378,7 +378,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
                         </div>
                         <div>
                           <h2 className="font-bold text-lg leading-tight text-[#2d2520]">Check Your Email</h2>
-                          <p className="text-xs" style={{ color: '#8a7968' }}>6-digit code sent</p>
+                          <p className="text-xs" style={{ color: '#8a7968' }}>8-digit code sent</p>
                         </div>
                       </div>
                       <button
@@ -400,7 +400,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
                     </div>
 
                     <p className="text-sm font-medium mb-5 text-center" style={{ color: '#8a7968' }}>
-                      Hey <span className="font-bold" style={{ color: '#d4a574' }}>{firstName}</span>, enter your 6-digit code 🔐
+                      Hey <span className="font-bold" style={{ color: '#d4a574' }}>{firstName}</span>, enter your 8-digit code 🔐
                     </p>
 
                     {/* OTP Boxes */}
