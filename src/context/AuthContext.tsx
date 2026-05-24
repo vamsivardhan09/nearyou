@@ -67,11 +67,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       setSession(existingSession);
       setUser(existingSession?.user ?? null);
+      setLoading(false); // don't wait for profile to unblock UI
 
       if (existingSession?.user) {
         await fetchProfile(existingSession.user.id);
       }
-      setLoading(false);
     };
 
     init();
@@ -82,13 +82,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (!mounted) return;
         setSession(newSession);
         setUser(newSession?.user ?? null);
+        setLoading(false); // immediate UI unblock
 
         if (newSession?.user) {
           await fetchProfile(newSession.user.id);
         } else {
           setProfile(null);
         }
-        setLoading(false);
       }
     );
 

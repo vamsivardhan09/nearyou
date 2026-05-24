@@ -332,6 +332,7 @@ export function UserHome() {
                 )}
                 {dbEvents.map((ev, i) => {
                   const eventDate = new Date(ev.event_date);
+                  if (isNaN(eventDate.getTime())) return null;
                   const days = differenceInDays(eventDate, new Date());
                   const pct = 0; // we don't have memories count yet without a join, just keep it 0 or mock
                   return (
@@ -445,6 +446,7 @@ export function UserHome() {
                 )}
                 {dbDates.map((item, i) => {
                   const itemDate = new Date(item.date);
+                  if (isNaN(itemDate.getTime())) return null;
                   const days = differenceInDays(itemDate, new Date());
                   const urgent = days <= 14;
                   return (
