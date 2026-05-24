@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Mail, User, ArrowRight, Sparkles, Heart, RotateCcw, CheckCircle2 } from 'lucide-react';
+import { X, Mail, User, Phone, ArrowRight, Sparkles, Heart, RotateCcw, CheckCircle2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 // ── Constants ──────────────────────────────────────────────────────────────
@@ -10,6 +10,13 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+}
+
+// Format phone for display: 9876543210 → 98765 43210
+function formatPhone(raw: string) {
+  const d = raw.replace(/\D/g, '').slice(0, 10);
+  if (d.length <= 5) return d;
+  return `${d.slice(0, 5)} ${d.slice(5)}`;
 }
 
 function Spinner() {
@@ -25,6 +32,7 @@ function Spinner() {
 export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [stage, setStage] = useState<'details' | 'otp' | 'success'>('details');
   const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(''));
   const [sending, setSending] = useState(false);
@@ -37,7 +45,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
   useEffect(() => {
     if (!isOpen) {
       const t = setTimeout(() => {
-        setFullName(''); setEmail(''); setStage('details');
+        setFullName(''); setEmail(''); setPhone(''); setStage('details');
         setOtp(Array(OTP_LENGTH).fill('')); setError('');
       }, 400);
       return () => clearTimeout(t);
@@ -53,11 +61,13 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
 
   const nameValid = fullName.trim().length >= 2;
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-  const canContinue = nameValid && emailValid && !sending;
+  const phoneValid = phone.length === 10;
+  const canContinue = nameValid && emailValid && phoneValid && !sending;
 
   // ── Step 1: Send OTP via Supabase ──────────────────────────────────────
   const handleSendOtp = async () => {
     if (!nameValid) { setError('Please enter your full name (min 2 characters).'); return; }
+    if (!phoneValid) { setError('Please enter a valid 10-digit mobile number.'); return; }
     if (!emailValid) { setError('Please enter a valid email address.'); return; }
     setError('');
     setSending(true);
@@ -66,7 +76,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
       email: email.trim().toLowerCase(),
       options: {
         // This data is stored in the user's metadata and used to create the profile
-        data: { full_name: fullName.trim() },
+        data: { full_name: fullName.trim(), phone: phone },
         shouldCreateUser: true,
       },
     });
@@ -108,6 +118,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
       id: data.user.id,
       full_name: fullName.trim(),
       email: email.trim().toLowerCase(),
+      phone: phone,
     }, { onConflict: 'id' });
 
     setStage('success');
@@ -265,7 +276,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
                       Email Address
                     </label>
                     <div
-                      className="flex items-center rounded-2xl overflow-hidden mb-6 transition-all"
+                      className="flex items-center rounded-2xl overflow-hidden mb-4 transition-all"
                       style={{
                         background: '#fafafa',
                         border: `1px solid ${emailValid ? 'rgba(212,165,116,0.6)' : !email ? 'rgba(0,0,0,0.08)' : 'rgba(248,113,113,0.6)'}`,
@@ -285,6 +296,40 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
                         className="flex-1 pr-4 py-3.5 bg-transparent outline-none text-sm font-medium"
                         style={{ color: '#2d2520', caretColor: '#d4a574' }}
                       />
+                    </div>
+
+                    {/* Mobile Number */}
+                    <label className="block text-xs font-semibold mb-2 tracking-wide uppercase" style={{ color: '#8a7968' }}>
+                      Mobile Number
+                    </label>
+                    <div
+                      className="flex items-center rounded-2xl overflow-hidden mb-6 transition-all"
+                      style={{
+                        background: '#fafafa',
+                        border: `1px solid ${phoneValid ? 'rgba(212,165,116,0.6)' : !phone ? 'rgba(0,0,0,0.08)' : 'rgba(248,113,113,0.6)'}`,
+                      }}
+                    >
+                      <div className="flex items-center gap-2 px-4 py-3.5"
+                        style={{ borderRight: '1px solid rgba(0,0,0,0.06)' }}>
+                        <span className="text-sm font-semibold" style={{ color: '#2d2520' }}>🇮🇳 +91</span>
+                      </div>
+                      <div className="flex items-center flex-1 px-4 gap-2">
+                        <Phone className="w-4 h-4" style={{ color: 'rgba(212,165,116,0.7)' }} />
+                        <input
+                          type="tel"
+                          inputMode="numeric"
+                          value={formatPhone(phone)}
+                          onChange={e => {
+                            const raw = e.target.value.replace(/\D/g, '').slice(0, 10);
+                            setPhone(raw);
+                          }}
+                          onKeyDown={e => e.key === 'Enter' && canContinue && handleSendOtp()}
+                          placeholder="98765 43210"
+                          autoComplete="tel"
+                          className="flex-1 bg-transparent outline-none text-sm font-medium"
+                          style={{ color: '#2d2520', caretColor: '#d4a574' }}
+                        />
+                      </div>
                     </div>
 
                     {/* CTA */}

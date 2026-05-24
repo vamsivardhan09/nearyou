@@ -1,10 +1,15 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Heart, Sparkles, User, Mail, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Heart, Sparkles, User, Mail, Phone, CheckCircle2 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 const OTP_LENGTH = 6;
+
+function formatPhone(raw: string) {
+  const d = raw.replace(/\D/g, '').slice(0, 10);
+  return d.length <= 5 ? d : `${d.slice(0, 5)} ${d.slice(5)}`;
+}
 
 function Spinner() {
   return (
@@ -18,6 +23,7 @@ export function OnboardingFlow() {
   const [stage, setStage] = useState<'splash' | 'details' | 'otp' | 'success'>('splash');
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(''));
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
@@ -33,16 +39,18 @@ export function OnboardingFlow() {
 
   const nameValid = fullName.trim().length >= 2;
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const phoneValid = phone.length === 10;
   const firstName = fullName.trim().split(' ')[0];
 
   const handleSendOtp = async () => {
     if (!nameValid) { setError('Enter your full name (min 2 chars).'); return; }
+    if (!phoneValid) { setError('Enter a valid 10-digit number.'); return; }
     if (!emailValid) { setError('Enter a valid email address.'); return; }
     setError(''); setSending(true);
 
     const { error: authError } = await supabase.auth.signInWithOtp({
       email: email.trim().toLowerCase(),
-      options: { data: { full_name: fullName.trim() }, shouldCreateUser: true },
+      options: { data: { full_name: fullName.trim(), phone: phone }, shouldCreateUser: true },
     });
 
     setSending(false);
@@ -89,6 +97,7 @@ export function OnboardingFlow() {
       id: data.user.id,
       full_name: fullName.trim(),
       email: email.trim().toLowerCase(),
+      phone: phone,
     }, { onConflict: 'id' });
 
     setStage('success');
@@ -179,24 +188,47 @@ export function OnboardingFlow() {
         </motion.div>
 
         {/* Email */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mb-6">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mb-4">
           <label className="block text-xs font-light mb-2 tracking-wide uppercase" style={{ color: '#8a7968' }}>Email Address</label>
           <div className="flex items-center rounded-2xl overflow-hidden"
             style={{ background: 'rgba(255,255,255,0.75)', border: `1.5px solid ${emailValid ? 'rgba(212,165,116,0.6)' : 'rgba(212,165,116,0.2)'}`, backdropFilter: 'blur(8px)' }}>
             <div className="px-4 py-4"><Mail className="w-4 h-4" style={{ color: '#c4a882' }} /></div>
             <input type="email" inputMode="email" value={email}
               onChange={e => setEmail(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && nameValid && emailValid && handleSendOtp()}
+              onKeyDown={e => e.key === 'Enter' && nameValid && phoneValid && emailValid && handleSendOtp()}
               placeholder="you@example.com"
               className="flex-1 pr-4 bg-transparent outline-none text-base font-light placeholder:font-light" style={{ color: '#2d2520' }} />
             {emailValid && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}><CheckCircle2 className="w-4 h-4 text-[#d4a574] mr-4" /></motion.div>}
           </div>
         </motion.div>
 
+        {/* Mobile */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mb-6">
+          <label className="block text-xs font-light mb-2 tracking-wide uppercase" style={{ color: '#8a7968' }}>Mobile Number</label>
+          <div className="flex items-center rounded-2xl overflow-hidden"
+            style={{ background: 'rgba(255,255,255,0.75)', border: `1.5px solid ${phoneValid ? 'rgba(212,165,116,0.6)' : 'rgba(212,165,116,0.2)'}`, backdropFilter: 'blur(8px)' }}>
+            <div className="flex items-center gap-1.5 px-4 py-4 border-r" style={{ borderColor: 'rgba(212,165,116,0.2)', flexShrink: 0 }}>
+              <span className="text-lg">🇮🇳</span><span className="font-light text-sm" style={{ color: '#d4a574' }}>+91</span>
+            </div>
+            <div className="flex items-center flex-1 px-4 gap-2">
+              <Phone className="w-4 h-4 flex-shrink-0" style={{ color: '#c4a882' }} />
+              <input type="tel" inputMode="numeric" value={formatPhone(phone)}
+                onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                onKeyDown={e => e.key === 'Enter' && nameValid && phoneValid && emailValid && handleSendOtp()}
+                placeholder="98765 43210"
+                className="flex-1 bg-transparent outline-none text-base font-light placeholder:font-light" style={{ color: '#2d2520' }} />
+              {phoneValid && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}><CheckCircle2 className="w-4 h-4 text-[#d4a574]" /></motion.div>}
+            </div>
+          </div>
+          {phone.length > 0 && phone.length < 10 && (
+            <p className="text-[11px] font-light mt-1.5 ml-1" style={{ color: '#c4a882' }}>{10 - phone.length} more digits</p>
+          )}
+        </motion.div>
+
         {error && <p className="text-[#e07b54] text-sm font-light mb-4 text-center">{error}</p>}
 
-        <motion.button whileHover={{ scale: nameValid && emailValid ? 1.02 : 1 }} whileTap={{ scale: 0.97 }}
-          onClick={handleSendOtp} disabled={!nameValid || !emailValid || sending}
+        <motion.button whileHover={{ scale: nameValid && phoneValid && emailValid ? 1.02 : 1 }} whileTap={{ scale: 0.97 }}
+          onClick={handleSendOtp} disabled={!nameValid || !phoneValid || !emailValid || sending}
           className="w-full py-5 rounded-2xl flex items-center justify-center gap-3 text-white font-medium text-base relative overflow-hidden disabled:opacity-40 transition-opacity"
           style={{ background: 'linear-gradient(135deg,#d4a574,#e07b54)' }}>
           {sending ? <Spinner /> : <><span>Send Verification Code</span><ArrowRight className="w-5 h-5" /></>}

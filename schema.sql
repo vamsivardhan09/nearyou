@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS public.profiles (
   id          UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
   full_name   TEXT,
   email       TEXT,
+  phone       TEXT,
   created_at  TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
 );
 
@@ -57,11 +58,12 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
-  INSERT INTO public.profiles (id, full_name, email)
+  INSERT INTO public.profiles (id, full_name, email, phone)
   VALUES (
     NEW.id,
     NEW.raw_user_meta_data ->> 'full_name',
-    NEW.email
+    NEW.email,
+    NEW.raw_user_meta_data ->> 'phone'
   )
   ON CONFLICT (id) DO NOTHING;
   RETURN NEW;
