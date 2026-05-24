@@ -207,36 +207,6 @@ export function UserHome() {
               </div>
             </section>
 
-            {/* UPCOMING UPDATES */}
-            <section>
-              <div className="flex items-center justify-between mb-5">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-[#d4a574]" />
-                  <h2 className="font-normal text-xl text-[#2d2520]">Upcoming Updates</h2>
-                </div>
-                <span className="text-[10px] uppercase tracking-widest font-medium px-3 py-1 rounded-full text-[#d4a574] bg-[rgba(212,165,116,0.15)]">What's New</span>
-              </div>
-              <div className="grid sm:grid-cols-2 gap-4">
-                {[
-                  { title: 'AI Voice Cloning for Memories', desc: 'Create voice notes that sound exactly like you, preserving your emotional tone forever.', tag: 'Next Week' },
-                  { title: 'Physical Keepsake Delivery', desc: 'Turn digital memories into beautifully crafted physical photo books delivered globally.', tag: 'Coming Soon' }
-                ].map((update, i) => (
-                  <motion.div key={i} initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
-                    className="p-5 rounded-3xl relative overflow-hidden group" style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 8px 30px rgba(0,0,0,0.03)' }}>
-                    <div className="absolute top-0 right-0 p-4">
-                      <span className="text-[10px] font-medium px-2 py-1 rounded-lg" style={{ background: 'rgba(212,165,116,0.15)', color: '#d4a574' }}>{update.tag}</span>
-                    </div>
-                    <div className="w-10 h-10 rounded-xl mb-4 flex items-center justify-center" style={{ background: 'rgba(212,165,116,0.1)' }}>
-                      <Sparkles className="w-4 h-4 text-[#d4a574]" />
-                    </div>
-                    <h3 className="font-semibold text-sm mb-2 text-[#2d2520]">{update.title}</h3>
-                    <p className="font-light text-xs leading-relaxed text-[#8a7968]">{update.desc}</p>
-                    <div className="absolute inset-0 border-2 border-transparent group-hover:border-[#d4a574]/20 rounded-3xl transition-colors pointer-events-none" />
-                  </motion.div>
-                ))}
-              </div>
-            </section>
-
             {/* PREVIOUS EXPERIENCES */}
             <section>
               <h2 className="font-normal text-xl mb-5 text-[#2d2520]">Previous Experiences</h2>
@@ -255,6 +225,28 @@ export function UserHome() {
                   </motion.div>
                 ))}
               </div>
+            </section>
+
+            {/* FEEDBACK BUTTON */}
+            <section>
+              <motion.div
+                initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+                className="rounded-3xl p-6 text-center relative overflow-hidden"
+                style={{ background: 'linear-gradient(135deg, rgba(212,165,116,0.1), rgba(232,87,58,0.06))', border: '1px solid rgba(212,165,116,0.2)' }}
+              >
+                <div className="text-4xl mb-3">💬</div>
+                <h3 className="font-semibold text-lg mb-2 text-[#2d2520]">How was your experience?</h3>
+                <p className="font-light text-sm text-[#8a7968] mb-5 max-w-sm mx-auto">We'd love to hear what you felt. Your feedback helps us make every moment more special.</p>
+                <motion.button
+                  whileHover={{ scale: 1.04, boxShadow: '0 16px 40px rgba(212,165,116,0.3)' }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => navigate('/feedback')}
+                  className="px-7 py-3 rounded-2xl text-white font-medium text-sm shadow-lg inline-flex items-center gap-2"
+                  style={{ background: 'linear-gradient(135deg, #d4a574, #e8573a)' }}
+                >
+                  ✨ Share Feedback
+                </motion.button>
+              </motion.div>
             </section>
           </div>
 
@@ -290,6 +282,39 @@ export function UserHome() {
                 <button onClick={() => navigate('/dashboard')} className="w-full mt-3 py-2.5 rounded-xl text-xs font-medium transition-colors hover:bg-[rgba(212,165,116,0.2)]" style={{ background: 'rgba(212,165,116,0.1)', color: '#d4a574' }}>
                   + Add Important Date
                 </button>
+              </div>
+            </section>
+
+            {/* UPCOMING UPDATES */}
+            <section>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-[#d4a574]" />
+                  <h2 className="font-normal text-lg text-[#2d2520]">Upcoming Updates</h2>
+                </div>
+                <span className="text-[10px] uppercase tracking-widest font-medium px-2 py-1 rounded-full text-[#d4a574] bg-[rgba(212,165,116,0.15)]">New</span>
+              </div>
+              <div className="space-y-3">
+                {[
+                  { title: 'AI Voice Cloning for Memories', desc: 'Create voice notes that sound exactly like you.', tag: 'Next Week' },
+                  { title: 'Physical Keepsake Delivery', desc: 'Turn digital memories into beautiful photo books.', tag: 'Coming Soon' }
+                ].map((update, i) => (
+                  <motion.div key={i} initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.1 }}
+                    className="p-4 rounded-2xl relative overflow-hidden group" style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-start gap-3">
+                        <div className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: 'rgba(212,165,116,0.1)' }}>
+                          <Sparkles className="w-3.5 h-3.5 text-[#d4a574]" />
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-xs mb-1 text-[#2d2520]">{update.title}</h3>
+                          <p className="font-light text-[11px] leading-relaxed text-[#8a7968]">{update.desc}</p>
+                        </div>
+                      </div>
+                      <span className="text-[9px] font-medium px-2 py-0.5 rounded-lg flex-shrink-0" style={{ background: 'rgba(212,165,116,0.15)', color: '#d4a574' }}>{update.tag}</span>
+                    </div>
+                  </motion.div>
+                ))}
               </div>
             </section>
 

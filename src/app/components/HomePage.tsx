@@ -522,7 +522,7 @@ export function HomePage({ onNavigate }: HomePageProps) {
                   >
                     <item.icon className="w-6 h-6" style={{ color: item.color }} />
                   </div>
-                  <span className="text-5xl font-bold block" style={{ color: `${item.color}22` }}>
+                  <span className="text-5xl font-bold block" style={{ color: item.color }}>
                     {item.step}
                   </span>
                 </div>

@@ -10,13 +10,13 @@ export type DigitalAction = {
 };
 
 export const DIGITAL_ACTIONS: DigitalAction[] = [
+  { id: 'show-real-world', label: 'Real-World Surprises',     icon: MapPin,        color: '#e8573a', bg: 'rgba(232,87,58,0.12)',   desc: 'Unforgettable physical moments' },
   { id: 'note',        label: 'Quick Emotional Note',         icon: MessageCircle, color: '#d4a574', bg: 'rgba(212,165,116,0.12)', desc: 'A heartfelt message right now' },
   { id: 'voice',       label: 'Voice Surprise',               icon: Mic,           color: '#c19466', bg: 'rgba(193,148,102,0.12)', desc: 'Your voice, their heart' },
   { id: 'video',       label: 'Video Memory',                 icon: Video,         color: '#e07b54', bg: 'rgba(224,123,84,0.12)',  desc: 'A cinematic moment' },
   { id: 'whatsapp',    label: 'WhatsApp Surprise',            icon: Send,          color: '#5a9e6f', bg: 'rgba(90,158,111,0.1)',   desc: 'Straight to their phone' },
   { id: 'email',       label: 'Email Surprise',               icon: Mail,          color: '#7a8ec4', bg: 'rgba(122,142,196,0.1)',  desc: 'A beautiful inbox moment' },
   { id: 'appreciate',  label: 'Appreciation Message',         icon: Sparkles,      color: '#c19466', bg: 'rgba(193,148,102,0.12)', desc: 'Tell them they matter' },
-  { id: 'show-real-world', label: 'Real-World Surprises',     icon: MapPin,        color: '#c19466', bg: 'rgba(193,148,102,0.12)', desc: 'Unforgettable physical moments' },
   { id: 'schedule',    label: 'Scheduled Delivery',           icon: Calendar,      color: '#c47e5a', bg: 'rgba(196,126,90,0.12)',  desc: 'Deliver at the perfect time' },
 ];
 
