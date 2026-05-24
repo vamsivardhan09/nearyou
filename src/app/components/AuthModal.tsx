@@ -1,11 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Phone, User, ArrowRight, Sparkles, Heart, RotateCcw, CheckCircle2 } from 'lucide-react';
-import { useAuth } from '../../context/AuthContext';
+import { X, Mail, User, ArrowRight, Sparkles, Heart, RotateCcw, CheckCircle2 } from 'lucide-react';
+import { supabase } from '../../lib/supabase';
 
-// ── Constants ────────────────────────────────────────────────────────────────
-const OTP_LENGTH = 4;
-const DEMO_OTP = '1234';
+// ── Constants ──────────────────────────────────────────────────────────────
+const OTP_LENGTH = 6;
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -23,16 +22,9 @@ function Spinner() {
   );
 }
 
-// Format phone for display: 9876543210 → 98765 43210
-function formatPhone(raw: string) {
-  const d = raw.replace(/\D/g, '').slice(0, 10);
-  if (d.length <= 5) return d;
-  return `${d.slice(0, 5)} ${d.slice(5)}`;
-}
-
 export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
   const [fullName, setFullName] = useState('');
-  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [stage, setStage] = useState<'details' | 'otp' | 'success'>('details');
   const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(''));
   const [sending, setSending] = useState(false);
@@ -40,18 +32,19 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
   const [countdown, setCountdown] = useState(0);
   const [error, setError] = useState('');
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const { loginWithName } = useAuth();
 
+  // Reset on close
   useEffect(() => {
     if (!isOpen) {
       const t = setTimeout(() => {
-        setFullName(''); setPhone(''); setStage('details');
+        setFullName(''); setEmail(''); setStage('details');
         setOtp(Array(OTP_LENGTH).fill('')); setError('');
       }, 400);
       return () => clearTimeout(t);
     }
   }, [isOpen]);
 
+  // Countdown timer for resend
   useEffect(() => {
     if (countdown <= 0) return;
     const t = setTimeout(() => setCountdown(c => c - 1), 1000);
@@ -59,21 +52,72 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
   }, [countdown]);
 
   const nameValid = fullName.trim().length >= 2;
-  const phoneValid = phone.length === 10;
-  const canContinue = nameValid && phoneValid && !sending;
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+  const canContinue = nameValid && emailValid && !sending;
 
+  // ── Step 1: Send OTP via Supabase ──────────────────────────────────────
   const handleSendOtp = async () => {
     if (!nameValid) { setError('Please enter your full name (min 2 characters).'); return; }
-    if (!phoneValid) { setError('Please enter a valid 10-digit mobile number.'); return; }
+    if (!emailValid) { setError('Please enter a valid email address.'); return; }
     setError('');
     setSending(true);
-    await new Promise(r => setTimeout(r, 900));
+
+    const { error: authError } = await supabase.auth.signInWithOtp({
+      email: email.trim().toLowerCase(),
+      options: {
+        // This data is stored in the user's metadata and used to create the profile
+        data: { full_name: fullName.trim() },
+        shouldCreateUser: true,
+      },
+    });
+
     setSending(false);
+
+    if (authError) {
+      setError(authError.message || 'Failed to send code. Please try again.');
+      return;
+    }
+
     setStage('otp');
-    setCountdown(30);
+    setCountdown(60);
     setTimeout(() => inputRefs.current[0]?.focus(), 300);
   };
 
+  // ── Step 2: Verify OTP ────────────────────────────────────────────────
+  const handleVerify = async (code: string) => {
+    if (code.length < OTP_LENGTH || verifying) return;
+    setVerifying(true);
+    setError('');
+
+    const { data, error: verifyError } = await supabase.auth.verifyOtp({
+      email: email.trim().toLowerCase(),
+      token: code,
+      type: 'email',
+    });
+
+    if (verifyError || !data.user) {
+      setError(verifyError?.message || 'Invalid or expired code. Please try again.');
+      setVerifying(false);
+      setOtp(Array(OTP_LENGTH).fill(''));
+      setTimeout(() => inputRefs.current[0]?.focus(), 100);
+      return;
+    }
+
+    // ── Upsert the profile with the name the user entered ────────────────
+    await supabase.from('profiles').upsert({
+      id: data.user.id,
+      full_name: fullName.trim(),
+      email: email.trim().toLowerCase(),
+    }, { onConflict: 'id' });
+
+    setStage('success');
+    await new Promise(r => setTimeout(r, 1100));
+    setVerifying(false);
+    onSuccess();
+    onClose();
+  };
+
+  // ── OTP box helpers ────────────────────────────────────────────────────
   const handleOtpChange = (i: number, val: string) => {
     const digit = val.replace(/\D/, '').slice(-1);
     const next = [...otp]; next[i] = digit; setOtp(next);
@@ -96,26 +140,6 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
       inputRefs.current[OTP_LENGTH - 1]?.focus();
       setTimeout(() => handleVerify(pasted), 100);
     }
-  };
-
-  const handleVerify = async (code: string) => {
-    if (code.length < OTP_LENGTH || verifying) return;
-    setVerifying(true);
-    setError('');
-    await new Promise(r => setTimeout(r, 600));
-    if (code !== DEMO_OTP) {
-      setError(`Incorrect OTP. Demo code is ${DEMO_OTP}`);
-      setVerifying(false);
-      setOtp(Array(OTP_LENGTH).fill(''));
-      setTimeout(() => inputRefs.current[0]?.focus(), 100);
-      return;
-    }
-    loginWithName(fullName.trim(), phone);
-    setStage('success');
-    await new Promise(r => setTimeout(r, 1100));
-    setVerifying(false);
-    onSuccess();
-    onClose();
   };
 
   const filledCount = otp.filter(d => d !== '').length;
@@ -142,7 +166,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 60, scale: 0.95 }}
             transition={{ type: 'spring', stiffness: 340, damping: 28 }}
-            className="fixed z-50 left-0 right-0 bottom-0 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[440px]"
+            className="fixed z-50 left-0 right-0 bottom-0 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-[460px]"
             style={{
               borderRadius: '28px 28px 0 0',
               overflow: 'hidden',
@@ -151,14 +175,10 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
               boxShadow: '0 -10px 80px rgba(0,0,0,0.03), 0 40px 80px rgba(0,0,0,0.1)',
             }}
           >
-            {/* Subtle warm glow top edge */}
-            <div style={{
-              height: '1px',
-              background: 'linear-gradient(90deg, transparent, rgba(212,165,116,0.3), transparent)',
-              marginBottom: '2px'
-            }} />
+            {/* Warm glow edge */}
+            <div style={{ height: '1px', background: 'linear-gradient(90deg, transparent, rgba(212,165,116,0.4), transparent)', marginBottom: '2px' }} />
 
-            {/* Drag handle */}
+            {/* Drag handle (mobile) */}
             <div className="flex justify-center pt-3 pb-1 md:hidden">
               <div className="w-10 h-1 rounded-full" style={{ background: 'rgba(0,0,0,0.1)' }} />
             </div>
@@ -215,8 +235,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
                     </div>
 
                     {/* Full Name */}
-                    <label className="block text-xs font-semibold mb-2 tracking-wide uppercase"
-                      style={{ color: '#8a7968' }}>
+                    <label className="block text-xs font-semibold mb-2 tracking-wide uppercase" style={{ color: '#8a7968' }}>
                       Full Name
                     </label>
                     <div
@@ -241,42 +260,34 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
                       />
                     </div>
 
-                    {/* Mobile Number */}
-                    <label className="block text-xs font-semibold mb-2 tracking-wide uppercase"
-                      style={{ color: '#8a7968' }}>
-                      Mobile Number
+                    {/* Email */}
+                    <label className="block text-xs font-semibold mb-2 tracking-wide uppercase" style={{ color: '#8a7968' }}>
+                      Email Address
                     </label>
                     <div
                       className="flex items-center rounded-2xl overflow-hidden mb-6 transition-all"
                       style={{
                         background: '#fafafa',
-                        border: `1px solid ${phoneValid ? 'rgba(212,165,116,0.6)' : !phone ? 'rgba(0,0,0,0.08)' : 'rgba(248,113,113,0.6)'}`,
+                        border: `1px solid ${emailValid ? 'rgba(212,165,116,0.6)' : !email ? 'rgba(0,0,0,0.08)' : 'rgba(248,113,113,0.6)'}`,
                       }}
                     >
-                      <div className="flex items-center gap-2 px-4 py-3.5"
-                        style={{ borderRight: '1px solid rgba(0,0,0,0.06)' }}>
-                        <span className="text-sm font-semibold" style={{ color: '#2d2520' }}>🇮🇳 +91</span>
+                      <div className="flex items-center px-4 py-3.5">
+                        <Mail className="w-4 h-4" style={{ color: 'rgba(212,165,116,0.7)' }} />
                       </div>
-                      <div className="flex items-center flex-1 px-4 gap-2">
-                        <Phone className="w-4 h-4" style={{ color: 'rgba(212,165,116,0.7)' }} />
-                        <input
-                          type="tel"
-                          inputMode="numeric"
-                          value={formatPhone(phone)}
-                          onChange={e => {
-                            const raw = e.target.value.replace(/\D/g, '').slice(0, 10);
-                            setPhone(raw);
-                          }}
-                          onKeyDown={e => e.key === 'Enter' && canContinue && handleSendOtp()}
-                          placeholder="98765 43210"
-                          autoComplete="tel"
-                          className="flex-1 bg-transparent outline-none text-sm font-medium"
-                          style={{ color: '#2d2520', caretColor: '#d4a574' }}
-                        />
-                      </div>
+                      <input
+                        type="email"
+                        inputMode="email"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && canContinue && handleSendOtp()}
+                        placeholder="you@example.com"
+                        autoComplete="email"
+                        className="flex-1 pr-4 py-3.5 bg-transparent outline-none text-sm font-medium"
+                        style={{ color: '#2d2520', caretColor: '#d4a574' }}
+                      />
                     </div>
 
-                    {/* CTA Button */}
+                    {/* CTA */}
                     <motion.button
                       whileHover={{ scale: 1.02, boxShadow: '0 12px 30px rgba(244,132,95,0.35)' }}
                       whileTap={{ scale: 0.97 }}
@@ -285,7 +296,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
                       className="w-full py-4 rounded-2xl text-white font-bold text-sm flex items-center justify-center gap-2 transition-all disabled:opacity-40"
                       style={{ background: 'linear-gradient(135deg, #f4845f 0%, #e8573a 100%)' }}
                     >
-                      {sending ? <Spinner /> : <><span>Continue</span><ArrowRight className="w-4 h-4" /></>}
+                      {sending ? <Spinner /> : <><span>Send Verification Code</span><ArrowRight className="w-4 h-4" /></>}
                     </motion.button>
 
                     {/* Error */}
@@ -321,8 +332,8 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
                           <Heart className="w-5 h-5 text-white fill-current" />
                         </div>
                         <div>
-                          <h2 className="font-bold text-lg leading-tight text-[#2d2520]">Verify Your Number</h2>
-                          <p className="text-xs" style={{ color: '#8a7968' }}>Secure Verification</p>
+                          <h2 className="font-bold text-lg leading-tight text-[#2d2520]">Check Your Email</h2>
+                          <p className="text-xs" style={{ color: '#8a7968' }}>6-digit code sent</p>
                         </div>
                       </div>
                       <button
@@ -334,30 +345,28 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
                       </button>
                     </div>
 
-                    {/* Greeting */}
-                    <p className="text-sm font-medium mb-5 text-center" style={{ color: '#8a7968' }}>
-                      Hey <span className="font-bold" style={{ color: '#d4a574' }}>{firstName}</span>, enter your 4-digit code 🔐
-                    </p>
-
-                    {/* Demo OTP hint */}
+                    {/* Email hint */}
                     <div className="flex items-center gap-2 px-4 py-3 rounded-xl mb-6"
-                      style={{ background: 'rgba(212,165,116,0.1)', border: '1px solid rgba(212,165,116,0.25)' }}>
-                      <Sparkles className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#d4a574' }} />
+                      style={{ background: 'rgba(212,165,116,0.08)', border: '1px solid rgba(212,165,116,0.2)' }}>
+                      <Mail className="w-3.5 h-3.5 flex-shrink-0" style={{ color: '#d4a574' }} />
                       <p className="text-xs" style={{ color: '#8a7968' }}>
-                        Demo mode · Use code{' '}
-                        <span className="font-bold" style={{ color: '#d4a574' }}>{DEMO_OTP}</span>
+                        Code sent to <span className="font-bold" style={{ color: '#d4a574' }}>{email}</span>
                       </p>
                     </div>
 
+                    <p className="text-sm font-medium mb-5 text-center" style={{ color: '#8a7968' }}>
+                      Hey <span className="font-bold" style={{ color: '#d4a574' }}>{firstName}</span>, enter your 6-digit code 🔐
+                    </p>
+
                     {/* OTP Boxes */}
-                    <div className="flex gap-3 justify-center mb-6" onPaste={handleOtpPaste}>
+                    <div className="flex gap-2 justify-center mb-6" onPaste={handleOtpPaste}>
                       {otp.map((digit, i) => (
                         <motion.input
                           key={i}
                           ref={el => { inputRefs.current[i] = el; }}
                           initial={{ opacity: 0, y: 10, scale: 0.8 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
-                          transition={{ delay: i * 0.07, type: 'spring', stiffness: 420, damping: 24 }}
+                          transition={{ delay: i * 0.05, type: 'spring', stiffness: 420, damping: 24 }}
                           type="tel"
                           inputMode="numeric"
                           maxLength={1}
@@ -365,7 +374,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
                           onChange={e => handleOtpChange(i, e.target.value)}
                           onKeyDown={e => handleOtpKey(i, e)}
                           disabled={verifying}
-                          className="w-14 h-16 outline-none text-center font-bold text-2xl rounded-2xl transition-all disabled:opacity-40"
+                          className="w-11 h-14 outline-none text-center font-bold text-xl rounded-2xl transition-all disabled:opacity-40"
                           style={{
                             background: digit ? 'rgba(212,165,116,0.1)' : '#fafafa',
                             border: `2px solid ${error ? 'rgba(248,113,113,0.7)' : digit ? '#d4a574' : 'rgba(0,0,0,0.06)'}`,
@@ -400,7 +409,7 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
                           className="text-xs font-medium hover:opacity-70 transition-opacity"
                           style={{ color: '#d4a574' }}
                         >
-                          Didn't get it? Resend OTP
+                          Didn't get it? Resend code
                         </button>
                       )}
                     </div>

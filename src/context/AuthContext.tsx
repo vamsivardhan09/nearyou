@@ -1,66 +1,122 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { Session, User } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabase';
 
-// ─── Types ─────────────────────────────────────────────────────────────────────
-export interface CelebrateUser {
+// ─── Types ──────────────────────────────────────────────────────────────────
+export interface UserProfile {
   id: string;
-  fullName: string;
-  phone: string;
+  full_name: string | null;
+  email: string | null;
+  created_at: string;
 }
 
 interface AuthContextType {
-  user: CelebrateUser | null;
+  user: User | null;
+  profile: UserProfile | null;
+  session: Session | null;
   loading: boolean;
   displayName: string;
-  signOut: () => void;
-  loginWithName: (fullName: string, phone: string) => void;
+  signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
-// ─── Context ───────────────────────────────────────────────────────────────────
+// ─── Context ────────────────────────────────────────────────────────────────
 const AuthContext = createContext<AuthContextType>({
   user: null,
+  profile: null,
+  session: null,
   loading: true,
   displayName: '',
-  signOut: () => {},
-  loginWithName: () => {},
+  signOut: async () => {},
+  refreshProfile: async () => {},
 });
 
-// ─── Provider ──────────────────────────────────────────────────────────────────
+// ─── Provider ───────────────────────────────────────────────────────────────
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<CelebrateUser | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Load from local storage on mount
-  useEffect(() => {
+  // Fetch the profile row from Supabase for the given user ID
+  const fetchProfile = useCallback(async (userId: string) => {
     try {
-      const stored = localStorage.getItem('nearyou_mock_user');
-      if (stored) {
-        setUser(JSON.parse(stored));
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error && error.code !== 'PGRST116') {
+        // PGRST116 = no rows found (first login before trigger runs)
+        console.warn('Profile fetch error:', error.message);
       }
+      setProfile(data ?? null);
     } catch (e) {
-      console.warn("Could not read mock user", e);
+      console.warn('fetchProfile threw:', e);
     }
-    setLoading(false);
   }, []);
 
-  const loginWithName = (fullName: string, phone: string) => {
-    const newUser = {
-      id: `local_${Date.now()}`,
-      fullName,
-      phone
+  // Bootstrap: check existing session on mount
+  useEffect(() => {
+    let mounted = true;
+
+    const init = async () => {
+      const { data: { session: existingSession } } = await supabase.auth.getSession();
+      if (!mounted) return;
+
+      setSession(existingSession);
+      setUser(existingSession?.user ?? null);
+
+      if (existingSession?.user) {
+        await fetchProfile(existingSession.user.id);
+      }
+      setLoading(false);
     };
-    setUser(newUser);
-    localStorage.setItem('nearyou_mock_user', JSON.stringify(newUser));
-  };
 
-  const signOut = () => {
+    init();
+
+    // Listen for auth state changes (login / logout / token refresh / magic link)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, newSession) => {
+        if (!mounted) return;
+        setSession(newSession);
+        setUser(newSession?.user ?? null);
+
+        if (newSession?.user) {
+          await fetchProfile(newSession.user.id);
+        } else {
+          setProfile(null);
+        }
+        setLoading(false);
+      }
+    );
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
+  }, [fetchProfile]);
+
+  const signOut = async () => {
+    await supabase.auth.signOut();
     setUser(null);
-    localStorage.removeItem('nearyou_mock_user');
+    setProfile(null);
+    setSession(null);
   };
 
-  const displayName = user?.fullName?.trim().split(' ')[0] ?? '';
+  const refreshProfile = useCallback(async () => {
+    if (user) await fetchProfile(user.id);
+  }, [user, fetchProfile]);
+
+  // Derive a friendly first name from profile or email
+  const displayName =
+    profile?.full_name?.trim().split(' ')[0] ||
+    user?.email?.split('@')[0] ||
+    '';
 
   return (
-    <AuthContext.Provider value={{ user, loading, displayName, signOut, loginWithName }}>
+    <AuthContext.Provider value={{ user, profile, session, loading, displayName, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

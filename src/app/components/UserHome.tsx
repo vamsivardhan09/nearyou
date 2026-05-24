@@ -39,7 +39,7 @@ const MEMORIES = [
 
 export function UserHome() {
   const navigate = useNavigate();
-  const { displayName, signOut, user } = useAuth();
+  const { displayName, signOut, user, profile } = useAuth();
   const [nudgeIdx, setNudgeIdx] = useState(0);
   const [greetingIdx] = useState(() => Math.floor(Math.random() * 3));
   const [showProfile, setShowProfile] = useState(false);
@@ -92,9 +92,9 @@ export function UserHome() {
                 {/* Avatar & Name */}
                 <div className="flex flex-col items-center text-center py-6 rounded-3xl" style={{ background: 'linear-gradient(135deg, rgba(212,165,116,0.12), rgba(232,87,58,0.06))', border: '1px solid rgba(212,165,116,0.2)' }}>
                   <div className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold text-white mb-4 shadow-lg" style={{ background: 'linear-gradient(135deg, #d4a574, #e8573a)' }}>
-                    {user?.fullName?.slice(0, 1).toUpperCase() || 'U'}
+                    {(profile?.full_name || displayName)?.slice(0, 1).toUpperCase() || 'U'}
                   </div>
-                  <h2 className="font-bold text-xl text-[#2d2520] mb-1">{user?.fullName || displayName}</h2>
+                  <h2 className="font-bold text-xl text-[#2d2520] mb-1">{profile?.full_name || displayName}</h2>
                   <span className="text-xs font-medium px-3 py-1 rounded-full" style={{ background: 'rgba(212,165,116,0.15)', color: '#d4a574' }}>nearyou member</span>
                 </div>
 
@@ -108,7 +108,7 @@ export function UserHome() {
                     </div>
                     <div>
                       <p className="text-[10px] font-medium uppercase tracking-wider text-[#8a7968]">Full Name</p>
-                      <p className="font-semibold text-sm text-[#2d2520] mt-0.5">{user?.fullName || '—'}</p>
+                      <p className="font-semibold text-sm text-[#2d2520] mt-0.5">{profile?.full_name || '—'}</p>
                     </div>
                   </div>
 
@@ -117,8 +117,8 @@ export function UserHome() {
                       <Phone className="w-4 h-4" style={{ color: '#5a9e6f' }} />
                     </div>
                     <div>
-                      <p className="text-[10px] font-medium uppercase tracking-wider text-[#8a7968]">Phone Number</p>
-                      <p className="font-semibold text-sm text-[#2d2520] mt-0.5">{user?.phone || '—'}</p>
+                      <p className="text-[10px] font-medium uppercase tracking-wider text-[#8a7968]">Email</p>
+                      <p className="font-semibold text-sm text-[#2d2520] mt-0.5">{profile?.email || user?.email || '—'}</p>
                     </div>
                   </div>
 

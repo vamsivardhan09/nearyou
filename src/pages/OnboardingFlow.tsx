@@ -1,16 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Heart, Sparkles, User, Phone, CheckCircle2 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { ArrowRight, Heart, Sparkles, User, Mail, CheckCircle2 } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 
-const OTP_LENGTH = 4;
-const DEMO_OTP = '1234';
-
-function formatPhone(raw: string) {
-  const d = raw.replace(/\D/g, '').slice(0, 10);
-  return d.length <= 5 ? d : `${d.slice(0, 5)} ${d.slice(5)}`;
-}
+const OTP_LENGTH = 6;
 
 function Spinner() {
   return (
@@ -21,10 +15,9 @@ function Spinner() {
 
 export function OnboardingFlow() {
   const navigate = useNavigate();
-  const { loginWithName } = useAuth();
   const [stage, setStage] = useState<'splash' | 'details' | 'otp' | 'success'>('splash');
   const [fullName, setFullName] = useState('');
-  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
   const [otp, setOtp] = useState<string[]>(Array(OTP_LENGTH).fill(''));
   const [sending, setSending] = useState(false);
   const [verifying, setVerifying] = useState(false);
@@ -39,15 +32,22 @@ export function OnboardingFlow() {
   }, [countdown]);
 
   const nameValid = fullName.trim().length >= 2;
-  const phoneValid = phone.length === 10;
+  const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
   const firstName = fullName.trim().split(' ')[0];
 
   const handleSendOtp = async () => {
     if (!nameValid) { setError('Enter your full name (min 2 chars).'); return; }
-    if (!phoneValid) { setError('Enter a valid 10-digit number.'); return; }
+    if (!emailValid) { setError('Enter a valid email address.'); return; }
     setError(''); setSending(true);
-    await new Promise(r => setTimeout(r, 900));
-    setSending(false); setStage('otp'); setCountdown(30);
+
+    const { error: authError } = await supabase.auth.signInWithOtp({
+      email: email.trim().toLowerCase(),
+      options: { data: { full_name: fullName.trim() }, shouldCreateUser: true },
+    });
+
+    setSending(false);
+    if (authError) { setError(authError.message || 'Failed to send code.'); return; }
+    setStage('otp'); setCountdown(60);
     setTimeout(() => inputRefs.current[0]?.focus(), 300);
   };
 
@@ -70,15 +70,26 @@ export function OnboardingFlow() {
     setVerifying(true);
     setError('');
 
-    // Mock OTP Verification
-    await new Promise(r => setTimeout(r, 600));
-    if (code !== DEMO_OTP) {
-      setError(`Wrong OTP. Demo: ${DEMO_OTP}`); setVerifying(false);
+    const { data, error: verifyError } = await supabase.auth.verifyOtp({
+      email: email.trim().toLowerCase(),
+      token: code,
+      type: 'email',
+    });
+
+    if (verifyError || !data.user) {
+      setError(verifyError?.message || 'Invalid or expired code.');
+      setVerifying(false);
       setOtp(Array(OTP_LENGTH).fill(''));
-      setTimeout(() => inputRefs.current[0]?.focus(), 100); return;
+      setTimeout(() => inputRefs.current[0]?.focus(), 100);
+      return;
     }
 
-    loginWithName(fullName.trim(), phone);
+    // Upsert profile
+    await supabase.from('profiles').upsert({
+      id: data.user.id,
+      full_name: fullName.trim(),
+      email: email.trim().toLowerCase(),
+    }, { onConflict: 'id' });
 
     setStage('success');
     await new Promise(r => setTimeout(r, 1400));
@@ -167,36 +178,28 @@ export function OnboardingFlow() {
           </div>
         </motion.div>
 
-        {/* Mobile */}
+        {/* Email */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mb-6">
-          <label className="block text-xs font-light mb-2 tracking-wide uppercase" style={{ color: '#8a7968' }}>Mobile Number</label>
+          <label className="block text-xs font-light mb-2 tracking-wide uppercase" style={{ color: '#8a7968' }}>Email Address</label>
           <div className="flex items-center rounded-2xl overflow-hidden"
-            style={{ background: 'rgba(255,255,255,0.75)', border: `1.5px solid ${phoneValid ? 'rgba(212,165,116,0.6)' : 'rgba(212,165,116,0.2)'}`, backdropFilter: 'blur(8px)' }}>
-            <div className="flex items-center gap-1.5 px-4 py-4 border-r" style={{ borderColor: 'rgba(212,165,116,0.2)', flexShrink: 0 }}>
-              <span className="text-lg">🇮🇳</span><span className="font-light text-sm" style={{ color: '#d4a574' }}>+91</span>
-            </div>
-            <div className="flex items-center flex-1 px-4 gap-2">
-              <Phone className="w-4 h-4 flex-shrink-0" style={{ color: '#c4a882' }} />
-              <input type="tel" inputMode="numeric" value={formatPhone(phone)}
-                onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                onKeyDown={e => e.key === 'Enter' && nameValid && phoneValid && handleSendOtp()}
-                placeholder="98765 43210"
-                className="flex-1 bg-transparent outline-none text-base font-light placeholder:font-light" style={{ color: '#2d2520' }} />
-              {phoneValid && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}><CheckCircle2 className="w-4 h-4 text-[#d4a574]" /></motion.div>}
-            </div>
+            style={{ background: 'rgba(255,255,255,0.75)', border: `1.5px solid ${emailValid ? 'rgba(212,165,116,0.6)' : 'rgba(212,165,116,0.2)'}`, backdropFilter: 'blur(8px)' }}>
+            <div className="px-4 py-4"><Mail className="w-4 h-4" style={{ color: '#c4a882' }} /></div>
+            <input type="email" inputMode="email" value={email}
+              onChange={e => setEmail(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && nameValid && emailValid && handleSendOtp()}
+              placeholder="you@example.com"
+              className="flex-1 pr-4 bg-transparent outline-none text-base font-light placeholder:font-light" style={{ color: '#2d2520' }} />
+            {emailValid && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}><CheckCircle2 className="w-4 h-4 text-[#d4a574] mr-4" /></motion.div>}
           </div>
-          {phone.length > 0 && phone.length < 10 && (
-            <p className="text-[11px] font-light mt-1.5 ml-1" style={{ color: '#c4a882' }}>{10 - phone.length} more digits</p>
-          )}
         </motion.div>
 
         {error && <p className="text-[#e07b54] text-sm font-light mb-4 text-center">{error}</p>}
 
-        <motion.button whileHover={{ scale: nameValid && phoneValid ? 1.02 : 1 }} whileTap={{ scale: 0.97 }}
-          onClick={handleSendOtp} disabled={!nameValid || !phoneValid || sending}
+        <motion.button whileHover={{ scale: nameValid && emailValid ? 1.02 : 1 }} whileTap={{ scale: 0.97 }}
+          onClick={handleSendOtp} disabled={!nameValid || !emailValid || sending}
           className="w-full py-5 rounded-2xl flex items-center justify-center gap-3 text-white font-medium text-base relative overflow-hidden disabled:opacity-40 transition-opacity"
           style={{ background: 'linear-gradient(135deg,#d4a574,#e07b54)' }}>
-          {sending ? <Spinner /> : <><span>Send OTP</span><ArrowRight className="w-5 h-5" /></>}
+          {sending ? <Spinner /> : <><span>Send Verification Code</span><ArrowRight className="w-5 h-5" /></>}
         </motion.button>
 
         <div className="flex items-center justify-center gap-6 mt-8">
@@ -228,18 +231,15 @@ export function OnboardingFlow() {
 
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="mb-8">
           <h2 className="font-normal text-4xl mb-2" style={{ color: '#2d2520' }}>Hey {firstName}! 👋</h2>
-          <p className="text-base font-light" style={{ color: '#8a7968' }}>Code sent to +91 {formatPhone(phone)}</p>
+          <p className="text-base font-light" style={{ color: '#8a7968' }}>Code sent to {email}</p>
         </motion.div>
 
-        {/* Demo hint */}
+        {/* Info hint */}
         <div className="flex items-center gap-2 px-4 py-3 rounded-2xl mb-8"
           style={{ background: 'rgba(212,165,116,0.08)', border: '1px solid rgba(212,165,116,0.2)' }}>
           <Sparkles className="w-4 h-4 flex-shrink-0" style={{ color: '#d4a574' }} />
           <p className="text-sm font-light" style={{ color: '#8a6a50' }}>
-            Demo mode · Use OTP{' '}
-            <span className="font-bold tracking-[0.3em] px-2 py-0.5 rounded" style={{ color: '#d4a574', background: 'rgba(212,165,116,0.15)' }}>
-              {DEMO_OTP}
-            </span>
+            Check your email inbox for the 6-digit verification code
           </p>
         </div>
 
