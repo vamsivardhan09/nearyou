@@ -2,12 +2,29 @@ import { useNavigate, useParams } from 'react-router';
 import { motion } from 'framer-motion';
 import {
   ArrowLeft, Settings, Calendar, Clock, Upload, Eye, Share2,
-  Image as ImageIcon, Users, CheckCircle, Heart
+  Image as ImageIcon, Users, CheckCircle, Heart, Loader2
 } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { supabase } from '../../lib/supabase';
 
 export function SingleEventDashboard() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [event, setEvent] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadEvent() {
+      if (!id) return;
+      const { data, error } = await supabase.from('events').select('*').eq('id', id).single();
+      if (data) setEvent(data);
+      setLoading(false);
+    }
+    loadEvent();
+  }, [id]);
+
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-[#fdfbf8]"><Loader2 className="w-8 h-8 animate-spin text-[#d4a574]" /></div>;
+  if (!event) return <div className="min-h-screen flex items-center justify-center bg-[#fdfbf8]">Event not found.</div>;
 
   return (
     <div className="min-h-screen font-light pb-24 text-[#2d2520]" style={{ background: '#fdfbf8' }}>
@@ -40,21 +57,21 @@ export function SingleEventDashboard() {
           <div className="absolute inset-0" style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
 
           <div className="relative z-10 flex flex-col h-full">
-            <div className="inline-block px-4 py-1.5 rounded-full border border-white/30 bg-white/15 text-xs font-semibold tracking-wide mb-6 w-fit">
-              Birthday Experience
+            <div className="inline-block px-4 py-1.5 rounded-full border border-white/30 bg-white/15 text-xs font-semibold tracking-wide mb-6 w-fit capitalize">
+              {event.event_type?.replace('_', ' ')} Experience
             </div>
 
-            <h2 className="text-4xl md:text-5xl font-light mb-2 leading-tight">Mom's Birthday Surprise</h2>
-            <p className="text-white/80 text-lg font-light mb-8">For Sarah Johnson</p>
+            <h2 className="text-4xl md:text-5xl font-light mb-2 leading-tight">{event.receiver_name}'s Surprise</h2>
+            <p className="text-white/80 text-lg font-light mb-8">For {event.receiver_name}</p>
 
             <div className="flex flex-wrap items-center gap-6 mb-12 text-sm font-medium text-white/90">
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4" />
-                <span>May 25, 2026</span>
+                <span>{new Date(event.event_date).toLocaleDateString('en-IN', { month: 'long', day: 'numeric', year: 'numeric' })}</span>
               </div>
               <div className="flex items-center gap-2">
                 <Clock className="w-4 h-4" />
-                <span>7 days until reveal</span>
+                <span>Pending reveal</span>
               </div>
             </div>
 

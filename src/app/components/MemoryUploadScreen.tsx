@@ -7,6 +7,7 @@ import { Textarea } from './ui/textarea';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { uploadToCloudinary } from '../../lib/cloudinary';
+import { supabase } from '../../lib/supabase';
 
 interface MemoryUploadScreenProps {
   onNavigate?: (screen: string) => void;
@@ -29,13 +30,8 @@ export function MemoryUploadScreen({ onNavigate }: MemoryUploadScreenProps) {
   }, [id]);
 
   const fetchMemories = async () => {
-    // Mock local fetch
-    setTimeout(() => {
-      setUploadedItems([
-        { id: 'mock1', contributor_name: 'Rahul', media_type: 'photo' },
-        { id: 'mock2', contributor_name: 'Priya', media_type: 'message', text_content: 'Love you!' }
-      ]);
-    }, 500);
+    const { data } = await supabase.from('memories').select('*').eq('event_id', id).order('created_at', { ascending: false });
+    if (data) setUploadedItems(data);
   };
 
   const uploadTypes = [
@@ -55,14 +51,18 @@ export function MemoryUploadScreen({ onNavigate }: MemoryUploadScreenProps) {
     setUploading(true);
     setError(null);
     try {
-      // Mock upload to local state
-      await new Promise(r => setTimeout(r, 800));
-      const newItem = {
-        id: `mock_${Date.now()}`,
+      const file = e.target.files[0];
+      const url = await uploadToCloudinary(file);
+      
+      const { data, error: insertError } = await supabase.from('memories').insert({
+        event_id: id,
         contributor_name: contributorName,
         media_type: activeTab,
-      };
-      setUploadedItems(prev => [newItem, ...prev]);
+        media_url: url
+      }).select().single();
+
+      if (insertError) throw insertError;
+      setUploadedItems(prev => [data, ...prev]);
     } catch (err: any) {
       setError(err.message || 'Upload failed');
     } finally {
@@ -80,15 +80,15 @@ export function MemoryUploadScreen({ onNavigate }: MemoryUploadScreenProps) {
     setUploading(true);
     setError(null);
     try {
-      // Mock save message to local state
-      await new Promise(r => setTimeout(r, 600));
-      const newItem = {
-        id: `mock_${Date.now()}`,
+      const { data, error: insertError } = await supabase.from('memories').insert({
+        event_id: id,
         contributor_name: contributorName,
-        media_type: 'text',
+        media_type: 'message',
         text_content: message,
-      };
-      setUploadedItems(prev => [newItem, ...prev]);
+      }).select().single();
+
+      if (insertError) throw insertError;
+      setUploadedItems(prev => [data, ...prev]);
       setMessage('');
     } catch (err: any) {
       setError(err.message || 'Saving message failed');
