@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, MapPin, Upload, Sparkles, Heart } from 'lucide-react';
 import { useEffect } from 'react';
 import { DigitalAction, RealWorldExperience, REAL_WORLD_EXPERIENCES } from '../../lib/experienceData';
+import { recordAndCheckBooking } from '../../lib/fraudProtection';
 
 type ExperienceModalProps = {
   isOpen: boolean;
@@ -24,6 +25,7 @@ export function ExperienceModal({ isOpen, onClose, action, type }: ExperienceMod
 
   const [selectedRealWorld, setSelectedRealWorld] = useState<RealWorldExperience | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<'all' | 'keepsake' | 'personal' | 'grand'>('all');
+  const [error, setError] = useState('');
 
   // File Upload State
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -46,6 +48,7 @@ export function ExperienceModal({ isOpen, onClose, action, type }: ExperienceMod
       setCategoryFilter('all');
       setUploadedFile(null);
       setUploadingStatus('idle');
+      setError('');
       setStep(1);
       setReceiver(''); setDate(''); setMessage(''); setLocation(''); setBudget('');
     }
@@ -60,6 +63,13 @@ export function ExperienceModal({ isOpen, onClose, action, type }: ExperienceMod
   const isListingRealWorld = type === 'list-real-world' && !selectedRealWorld;
 
   const handleSubmit = async () => {
+    setError('');
+    const fraudCheck = recordAndCheckBooking(receiver);
+    if (fraudCheck.isSuspicious) {
+      setError(fraudCheck.message);
+      return;
+    }
+
     setSubmitting(true);
     await new Promise(r => setTimeout(r, 1500));
     setSubmitting(false);
@@ -308,6 +318,12 @@ export function ExperienceModal({ isOpen, onClose, action, type }: ExperienceMod
                     </p>
                   </div>
                 </div>
+
+                {error && (
+                  <div className="p-4 rounded-2xl text-xs font-semibold border border-red-500/20 text-red-600 bg-red-50 text-center">
+                    ⚠️ {error}
+                  </div>
+                )}
 
                 <button onClick={handleSubmit} disabled={submitting || !receiver}
                   className="w-full py-4 rounded-2xl text-white font-medium text-sm flex items-center justify-center gap-2 mt-2 disabled:opacity-60 transition-all hover:opacity-90 shadow-lg shadow-[#d4a574]/15"

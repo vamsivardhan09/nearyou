@@ -6,6 +6,7 @@ import {
   Image as ImageIcon, Users, Heart
 } from 'lucide-react';
 import { differenceInDays } from 'date-fns';
+import { recordCancellation } from '../../lib/fraudProtection';
 
 const EVENT_TYPES: Record<string, string> = {
   birthday: 'Birthday Experience 🎂',
@@ -24,6 +25,21 @@ export function SingleEventDashboard() {
   const [event, setEvent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [memories, setMemories] = useState<any[]>([]);
+
+  const handleCancelBooking = () => {
+    const confirmCancel = window.confirm("Are you sure you want to cancel this booking? This will remove all collected media and release the slot.");
+    if (confirmCancel && event) {
+      recordCancellation();
+
+      const customEventsStr = localStorage.getItem('nearyou_events');
+      const customEvents = customEventsStr ? JSON.parse(customEventsStr) : [];
+      const updatedEvents = customEvents.filter((ev: any) => ev.id !== event.id);
+      localStorage.setItem('nearyou_events', JSON.stringify(updatedEvents));
+
+      alert("Booking cancelled successfully.");
+      navigate('/home');
+    }
+  };
 
   useEffect(() => {
     if (!id) return;
@@ -345,6 +361,21 @@ export function SingleEventDashboard() {
 
               <button className="w-full py-3.5 rounded-2xl border border-black/8 text-[#2d2520] font-semibold text-sm hover:bg-black/4 transition-colors flex items-center justify-center gap-2">
                 <Users className="w-4 h-4" /> Resend Invitations
+              </button>
+            </motion.div>
+
+            {/* Danger Zone / Booking Actions */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+              className="rounded-3xl p-8 border border-red-200/50 shadow-md bg-white">
+              <h3 className="text-lg font-medium text-[#2d2520] mb-3">Manage Booking</h3>
+              <p className="text-xs text-[#8a7968] mb-4 leading-relaxed">
+                Need to change or cancel this experience? Cancellations release scheduled slots back to our coordinating team.
+              </p>
+              <button 
+                onClick={handleCancelBooking}
+                className="w-full py-3.5 rounded-2xl text-red-600 border border-red-200 hover:bg-red-50 transition-all font-semibold text-sm flex items-center justify-center gap-2"
+              >
+                Cancel Surprise Booking
               </button>
             </motion.div>
 

@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { differenceInDays } from 'date-fns';
 import { useAuth } from '../../context/AuthContext';
+import { recordAndCheckBooking } from '../../lib/fraudProtection';
 
 interface EventCreationScreenProps {
   onNavigate?: (screen: string) => void;
@@ -187,6 +188,12 @@ export function EventCreationScreen({ onNavigate }: EventCreationScreenProps) {
   };
 
   const handleSubmit = async () => {
+    const fraudCheck = recordAndCheckBooking(form.receiverName);
+    if (fraudCheck.isSuspicious) {
+      setError(fraudCheck.message);
+      return;
+    }
+
     setLoading(true);
     setError('');
     try {
@@ -623,11 +630,11 @@ export function EventCreationScreen({ onNavigate }: EventCreationScreenProps) {
                   </div>
                 </div>
 
-                {error && (
-                  <div className="mt-4 p-4 rounded-xl text-sm font-medium border border-red-500/20 text-red-400 bg-red-50/50">
-                    {error}
-                  </div>
-                )}
+              </div>
+            )}
+            {error && (
+              <div className="mt-6 p-4 rounded-2xl text-xs font-semibold border border-red-500/20 text-red-600 bg-red-50 text-center">
+                ⚠️ {error}
               </div>
             )}
           </motion.div>
