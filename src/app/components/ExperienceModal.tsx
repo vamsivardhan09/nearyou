@@ -4,6 +4,7 @@ import { X, Calendar, MapPin, Upload, Sparkles, Heart } from 'lucide-react';
 import { useEffect } from 'react';
 import { DigitalAction, RealWorldExperience, REAL_WORLD_EXPERIENCES } from '../../lib/experienceData';
 import { recordAndCheckBooking } from '../../lib/fraudProtection';
+import { supabase } from '../../lib/supabaseClient';
 
 type ExperienceModalProps = {
   isOpen: boolean;
@@ -534,7 +535,7 @@ export function ExperienceModal({ isOpen, onClose, action, type }: ExperienceMod
     setSubmitting(true);
     await new Promise(r => setTimeout(r, 1500));
 
-    // Save booking to localStorage nearyou_bookings
+    // Save booking to localStorage nearyou_bookings & Supabase
     try {
       const existing = localStorage.getItem('nearyou_bookings');
       const bookings = existing ? JSON.parse(existing) : [];
@@ -563,6 +564,16 @@ export function ExperienceModal({ isOpen, onClose, action, type }: ExperienceMod
       
       bookings.push(newBooking);
       localStorage.setItem('nearyou_bookings', JSON.stringify(bookings));
+
+      // Save to Supabase (non-blocking, fails gracefully if tables aren't created yet)
+      try {
+        const { error } = await supabase.from('nearyou_bookings').insert([newBooking]);
+        if (error) {
+          console.warn('Failed to save booking to Supabase:', error.message);
+        }
+      } catch (dbErr) {
+        console.warn('Supabase DB connection error:', dbErr);
+      }
     } catch (e) {
       console.error('Failed to save booking', e);
     }

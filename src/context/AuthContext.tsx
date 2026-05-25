@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../lib/supabaseClient';
 
 // ─── Types ─────────────────────────────────────────────────────────────────────
 export interface CelebrateUser {
@@ -51,13 +52,22 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(newUser);
     localStorage.setItem('nearyou_mock_user', JSON.stringify(newUser));
     
-    // Also save to nearyou_all_users list in localStorage
+    // Also save to nearyou_all_users list in localStorage & Supabase
     try {
       const allUsersStr = localStorage.getItem('nearyou_all_users');
       const allUsers = allUsersStr ? JSON.parse(allUsersStr) : [];
       if (!allUsers.some((u: any) => u.phone === phone)) {
         allUsers.push(newUser);
         localStorage.setItem('nearyou_all_users', JSON.stringify(allUsers));
+        
+        // Save to Supabase (non-blocking, fails gracefully if database tables aren't setup yet)
+        try {
+          supabase.from('nearyou_all_users').insert([newUser]).then(({ error }) => {
+            if (error) console.warn('Failed to insert user into Supabase:', error.message);
+          });
+        } catch (dbErr) {
+          console.warn('Supabase DB connection error:', dbErr);
+        }
       }
     } catch (e) {
       console.warn("Could not save to all users database", e);

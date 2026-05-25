@@ -64,4 +64,47 @@ CREATE TABLE IF NOT EXISTS public.important_dates (
 
 ALTER TABLE public.important_dates ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can insert own dates" ON public.important_dates FOR INSERT WITH CHECK (auth.uid() = user_id);
-CREATE POLICY "Users can read own dates" ON public.important_dates FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can read own dates" ON public.important_dates FOR SELECT USING (true);
+
+-- Create nearyou_bookings table for cross-device bookings sync
+CREATE TABLE IF NOT EXISTS public.nearyou_bookings (
+  id TEXT PRIMARY KEY,
+  "recipientName" TEXT,
+  "targetDate" TEXT,
+  message TEXT,
+  location TEXT,
+  budget TEXT,
+  "whatsappNumber" TEXT,
+  "recipientEmail" TEXT,
+  "extraText1" TEXT,
+  "extraSelect1" TEXT,
+  "surpriseTitle" TEXT,
+  "surpriseType" TEXT,
+  price NUMERIC,
+  "paymentMethod" TEXT,
+  "utrNumber" TEXT,
+  "paymentScreenshot" TEXT,
+  "appliedDiscountCode" TEXT,
+  status TEXT,
+  "createdAt" TEXT
+);
+
+-- Enable RLS Policies on nearyou_bookings
+ALTER TABLE public.nearyou_bookings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Anyone can insert booking" ON public.nearyou_bookings FOR INSERT WITH CHECK (true);
+CREATE POLICY "Anyone can read bookings" ON public.nearyou_bookings FOR SELECT USING (true);
+CREATE POLICY "Anyone can update bookings" ON public.nearyou_bookings FOR UPDATE USING (true);
+CREATE POLICY "Anyone can delete bookings" ON public.nearyou_bookings FOR DELETE USING (true);
+
+-- Create nearyou_all_users table for cross-device users sync
+CREATE TABLE IF NOT EXISTS public.nearyou_all_users (
+  id TEXT PRIMARY KEY,
+  "fullName" TEXT,
+  phone TEXT
+);
+
+-- Enable RLS Policies on nearyou_all_users
+ALTER TABLE public.nearyou_all_users ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Anyone can insert user" ON public.nearyou_all_users FOR INSERT WITH CHECK (true);
+CREATE POLICY "Anyone can read users" ON public.nearyou_all_users FOR SELECT USING (true);
+CREATE POLICY "Anyone can delete users" ON public.nearyou_all_users FOR DELETE USING (true);

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Shield, Check, X, Calendar, MapPin, Clock, Eye, Trash2, Database, ArrowLeft, User, Phone, Lock, Users, LogOut, CheckCircle2 } from 'lucide-react';
+import { supabase } from '../../lib/supabaseClient';
 
 interface SavedBooking {
   id: string;
@@ -47,31 +48,73 @@ export function AdminScreen() {
   const [selectedBooking, setSelectedBooking] = useState<SavedBooking | null>(null);
   const [screenshotModalUrl, setScreenshotModalUrl] = useState<string | null>(null);
 
-  // Load Bookings & Users
-  const loadData = () => {
+  // Load Bookings & Users from Supabase, fallback to localStorage
+  const loadData = async () => {
     try {
-      const storedBookings = localStorage.getItem('nearyou_bookings');
-      if (storedBookings) {
-        setBookings(JSON.parse(storedBookings));
-      } else {
-        setBookings([]);
+      // 1. Fetch Bookings from Supabase
+      let finalBookings: SavedBooking[] = [];
+      try {
+        const { data, error } = await supabase
+          .from('nearyou_bookings')
+          .select('*');
+          
+        if (error) {
+          throw new Error(error.message);
+        }
+        if (data && data.length > 0) {
+          finalBookings = data as SavedBooking[];
+          // Sort by creation time descending
+          finalBookings.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+        }
+      } catch (dbErr) {
+        console.warn('Failed to load bookings from Supabase, falling back to local storage:', dbErr);
+      }
+      
+      // Fallback to local storage if Supabase returned nothing or failed
+      if (finalBookings.length === 0) {
+        const storedBookings = localStorage.getItem('nearyou_bookings');
+        if (storedBookings) {
+          finalBookings = JSON.parse(storedBookings);
+        }
+      }
+      setBookings(finalBookings);
+
+      // 2. Fetch Users from Supabase
+      let finalUsers: RegisterUser[] = [];
+      try {
+        const { data, error } = await supabase
+          .from('nearyou_all_users')
+          .select('*');
+          
+        if (error) {
+          throw new Error(error.message);
+        }
+        if (data && data.length > 0) {
+          finalUsers = data as RegisterUser[];
+        }
+      } catch (dbErr) {
+        console.warn('Failed to load users from Supabase, falling back to local storage:', dbErr);
       }
 
-      const storedUsers = localStorage.getItem('nearyou_all_users');
-      if (storedUsers) {
-        setUsers(JSON.parse(storedUsers));
-      } else {
-        // Fallback default mock user database
-        const defaultUsers = [
-          { id: 'local_1', fullName: 'Harsha Vardhan', phone: '9876543210' },
-          { id: 'local_2', fullName: 'Priya Sharma', phone: '9123456789' },
-          { id: 'local_3', fullName: 'Rohan Verma', phone: '8877665544' }
-        ];
-        localStorage.setItem('nearyou_all_users', JSON.stringify(defaultUsers));
-        setUsers(defaultUsers);
+      // Fallback to local storage if Supabase returned nothing or failed
+      if (finalUsers.length === 0) {
+        const storedUsers = localStorage.getItem('nearyou_all_users');
+        if (storedUsers) {
+          finalUsers = JSON.parse(storedUsers);
+        } else {
+          // Fallback default mock user database
+          const defaultUsers = [
+            { id: 'local_1', fullName: 'Harsha Vardhan', phone: '9876543210' },
+            { id: 'local_2', fullName: 'Priya Sharma', phone: '9123456789' },
+            { id: 'local_3', fullName: 'Rohan Verma', phone: '8877665544' }
+          ];
+          localStorage.setItem('nearyou_all_users', JSON.stringify(defaultUsers));
+          finalUsers = defaultUsers;
+        }
       }
+      setUsers(finalUsers);
     } catch (e) {
-      console.error(e);
+      console.error('Error loading data:', e);
     }
   };
 
@@ -100,17 +143,31 @@ export function AdminScreen() {
   };
 
   // Update Status
-  const updateStatus = (id: string, newStatus: SavedBooking['status']) => {
+  const updateStatus = async (id: string, newStatus: SavedBooking['status']) => {
     try {
+      // Update in Supabase
+      try {
+        const { error } = await supabase
+          .from('nearyou_bookings')
+          .update({ status: newStatus })
+          .eq('id', id);
+        if (error) console.warn('Failed to update status in Supabase:', error.message);
+      } catch (dbErr) {
+        console.warn('Supabase status update error:', dbErr);
+      }
+
+      // Update local storage
       const stored = localStorage.getItem('nearyou_bookings');
       if (stored) {
         const list: SavedBooking[] = JSON.parse(stored);
         const updated = list.map(b => b.id === id ? { ...b, status: newStatus } : b);
         localStorage.setItem('nearyou_bookings', JSON.stringify(updated));
-        setBookings(updated);
-        if (selectedBooking && selectedBooking.id === id) {
-          setSelectedBooking({ ...selectedBooking, status: newStatus });
-        }
+      }
+      
+      // Update state
+      setBookings(prev => prev.map(b => b.id === id ? { ...b, status: newStatus } : b));
+      if (selectedBooking && selectedBooking.id === id) {
+        setSelectedBooking({ ...selectedBooking, status: newStatus });
       }
     } catch (e) {
       console.error(e);
@@ -118,40 +175,59 @@ export function AdminScreen() {
   };
 
   // Delete Booking
-  const deleteBooking = (id: string) => {
+  const deleteBooking = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this booking record?')) return;
     try {
+      // Delete from Supabase
+      try {
+        const { error } = await supabase.from('nearyou_bookings').delete().eq('id', id);
+        if (error) console.warn('Failed to delete booking in Supabase:', error.message);
+      } catch (dbErr) {
+        console.warn('Supabase delete booking error:', dbErr);
+      }
+
+      // Delete from local storage
       const stored = localStorage.getItem('nearyou_bookings');
       if (stored) {
         const list: SavedBooking[] = JSON.parse(stored);
         const updated = list.filter(b => b.id !== id);
         localStorage.setItem('nearyou_bookings', JSON.stringify(updated));
-        setBookings(updated);
-        setSelectedBooking(null);
       }
+      
+      setBookings(prev => prev.filter(b => b.id !== id));
+      setSelectedBooking(null);
     } catch (e) {
       console.error(e);
     }
   };
 
   // Delete User Profile
-  const deleteUser = (id: string) => {
+  const deleteUser = async (id: string) => {
     if (!window.confirm('Are you sure you want to delete this user profile?')) return;
     try {
+      // Delete from Supabase
+      try {
+        const { error } = await supabase.from('nearyou_all_users').delete().eq('id', id);
+        if (error) console.warn('Failed to delete user in Supabase:', error.message);
+      } catch (dbErr) {
+        console.warn('Supabase delete user error:', dbErr);
+      }
+
+      // Delete from local storage
       const stored = localStorage.getItem('nearyou_all_users');
       if (stored) {
         const list: RegisterUser[] = JSON.parse(stored);
         const updated = list.filter(u => u.id !== id);
         localStorage.setItem('nearyou_all_users', JSON.stringify(updated));
-        setUsers(updated);
       }
+      setUsers(prev => prev.filter(u => u.id !== id));
     } catch (e) {
       console.error(e);
     }
   };
 
   // Seed Mock Bookings
-  const seedMockBookings = () => {
+  const seedMockBookings = async () => {
     const mockBookings: SavedBooking[] = [
       {
         id: 'NY-882312',
@@ -201,6 +277,14 @@ export function AdminScreen() {
         createdAt: new Date(Date.now() - 86400000 * 2).toLocaleString()
       }
     ];
+
+    // Seed to Supabase (non-blocking, fails gracefully)
+    try {
+      await supabase.from('nearyou_bookings').insert(mockBookings);
+    } catch (dbErr) {
+      console.warn('Failed to seed mock bookings in Supabase:', dbErr);
+    }
+
     localStorage.setItem('nearyou_bookings', JSON.stringify(mockBookings));
     setBookings(mockBookings);
   };
