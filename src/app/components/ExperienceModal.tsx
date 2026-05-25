@@ -977,14 +977,15 @@ export function ExperienceModal({ isOpen, onClose, action, type }: ExperienceMod
                     {paymentMethod === 'upi' ? (
                       <div className="space-y-4">
                         <div className="flex flex-col items-center justify-center p-4 rounded-3xl bg-slate-50 border border-slate-100">
-                          {/* Styled QR Code matching the colors in the user's uploaded picture */}
-                          <div className="relative p-[6px] rounded-[32px] overflow-hidden mb-3 shadow-md flex items-center justify-center bg-white"
+                          {/* Styled QR Code matching the Nearyou premium brand theme */}
+                          <div className="relative p-[6px] rounded-[32px] overflow-hidden mb-3 shadow-lg flex items-center justify-center"
                                style={{
-                                 background: 'linear-gradient(to bottom, #00bfff 0%, #00bfff 50%, #00008b 50%, #00008b 100%)',
-                                 width: '180px',
-                                 height: '180px'
+                                 background: 'linear-gradient(135deg, #d4a574 0%, #e8573a 100%)',
+                                 width: '185px',
+                                 height: '185px',
+                                 boxShadow: '0 10px 25px rgba(212, 165, 116, 0.25)'
                                }}>
-                            <div className="w-full h-full rounded-[26px] bg-white p-2.5 flex items-center justify-center overflow-hidden">
+                            <div className="w-full h-full rounded-[26px] bg-white p-3 flex items-center justify-center overflow-hidden">
                               <img src="/images/payment_qr.jpg" alt="UPI QR Code" className="w-full h-full object-contain" />
                             </div>
                           </div>
