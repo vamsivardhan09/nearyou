@@ -39,17 +39,33 @@ export function ExperienceModal({ isOpen, onClose, action, type }: ExperienceMod
   const [cardExpiry, setCardExpiry] = useState('');
   const [cardCvv, setCardCvv] = useState('');
   const [upiId, setUpiId] = useState('');
+  const [utrNumber, setUtrNumber] = useState('');
+  const [paymentScreenshot, setPaymentScreenshot] = useState<string>('');
+  const [screenshotFileName, setScreenshotFileName] = useState<string>('');
+  const [isManualUpi, setIsManualUpi] = useState(false);
+
+  // Discount Codes State
+  const [discountCodeInput, setDiscountCodeInput] = useState('');
+  const [appliedCode, setAppliedCode] = useState('');
+  const [discountPercent, setDiscountPercent] = useState(0);
+  const [suggestedCode, setSuggestedCode] = useState('');
 
   // File Upload State
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [uploadingStatus, setUploadingStatus] = useState<'idle' | 'uploading' | 'success'>('idle');
 
   const getBookingPrice = (): number => {
-    if (isDigital) return 99;
-    if (!realWorld) return 0;
-    let base = realWorld.priceRupees;
-    if (budget === 'premium') base += 499;
-    if (budget === 'grand') base += 1999;
+    let base = 0;
+    if (isDigital) {
+      base = 99;
+    } else if (realWorld) {
+      base = realWorld.priceRupees;
+      if (budget === 'premium') base += 499;
+      if (budget === 'grand') base += 1999;
+    }
+    if (discountPercent > 0) {
+      base = Math.max(0, Math.round(base * (1 - discountPercent / 100)));
+    }
     return base;
   };
 
@@ -75,6 +91,8 @@ export function ExperienceModal({ isOpen, onClose, action, type }: ExperienceMod
       setReceiver(''); setDate(''); setMessage(''); setLocation(''); setBudget('');
       setWhatsappNumber(''); setRecipientEmail(''); setExtraText1(''); setExtraSelect1('');
       setPaymentMethod('upi'); setCardNumber(''); setCardExpiry(''); setCardCvv(''); setUpiId('');
+      setUtrNumber(''); setPaymentScreenshot(''); setScreenshotFileName(''); setIsManualUpi(false);
+      setDiscountCodeInput(''); setAppliedCode(''); setDiscountPercent(0); setSuggestedCode('');
     }
   }, [isOpen]);
 
@@ -494,12 +512,61 @@ export function ExperienceModal({ isOpen, onClose, action, type }: ExperienceMod
         setError(fraudCheck.message);
         return;
       }
+      // Suggest random discount code
+      const codes = ['LOVE10', 'SURPRISE15', 'NEARNEW20', 'FOREVER25'];
+      const randomCode = codes[Math.floor(Math.random() * codes.length)];
+      setSuggestedCode(randomCode);
       setStep(2); // Go to Payment Page
       return;
     }
 
+    if (paymentMethod === 'upi' && isManualUpi) {
+      if (!utrNumber || utrNumber.trim().length !== 12) {
+        setError('Please enter a valid 12-digit UTR/Transaction reference number.');
+        return;
+      }
+      if (!paymentScreenshot) {
+        setError('Please upload your payment screenshot to verify.');
+        return;
+      }
+    }
+
     setSubmitting(true);
     await new Promise(r => setTimeout(r, 1500));
+
+    // Save booking to localStorage nearyou_bookings
+    try {
+      const existing = localStorage.getItem('nearyou_bookings');
+      const bookings = existing ? JSON.parse(existing) : [];
+      
+      const newBooking = {
+        id: 'NY-' + Math.floor(100000 + Math.random() * 900000),
+        recipientName: receiver || 'Recipient',
+        targetDate: date || new Date().toISOString().split('T')[0],
+        message: message || '',
+        location: location || 'Digital Delivery',
+        budget: budget || 'base',
+        whatsappNumber,
+        recipientEmail,
+        extraText1,
+        extraSelect1,
+        surpriseTitle: isDigital ? digitalAction.label : (realWorld?.title || ''),
+        surpriseType: isDigital ? 'digital' : 'real-world',
+        price: getBookingPrice(),
+        paymentMethod: paymentMethod + (isManualUpi ? ' (Manual UPI Verification)' : ' (Auto Success)'),
+        utrNumber: isManualUpi ? utrNumber : undefined,
+        paymentScreenshot: isManualUpi ? paymentScreenshot : undefined,
+        appliedDiscountCode: appliedCode || undefined,
+        status: isManualUpi ? 'Pending Verification' : 'Approved',
+        createdAt: new Date().toLocaleString()
+      };
+      
+      bookings.push(newBooking);
+      localStorage.setItem('nearyou_bookings', JSON.stringify(bookings));
+    } catch (e) {
+      console.error('Failed to save booking', e);
+    }
+
     setSubmitting(false);
     setStep(3); // Success step
     setTimeout(() => {
@@ -508,6 +575,8 @@ export function ExperienceModal({ isOpen, onClose, action, type }: ExperienceMod
       setReceiver(''); setDate(''); setMessage(''); setLocation(''); setBudget('');
       setWhatsappNumber(''); setRecipientEmail(''); setExtraText1(''); setExtraSelect1('');
       setPaymentMethod('upi'); setCardNumber(''); setCardExpiry(''); setCardCvv(''); setUpiId('');
+      setUtrNumber(''); setPaymentScreenshot(''); setScreenshotFileName(''); setIsManualUpi(false);
+      setDiscountCodeInput(''); setAppliedCode(''); setDiscountPercent(0); setSuggestedCode('');
     }, 4000);
   };
 
@@ -747,7 +816,6 @@ export function ExperienceModal({ isOpen, onClose, action, type }: ExperienceMod
                       </p>
                     </div>
                   </div>
-
                   {error && (
                     <div className="p-4 rounded-2xl text-xs font-semibold border border-red-500/20 text-red-600 bg-red-50 text-center animate-shake">
                       ⚠️ {error}
@@ -785,10 +853,76 @@ export function ExperienceModal({ isOpen, onClose, action, type }: ExperienceMod
                         <span className="font-semibold text-[#2d2520] capitalize">{budget}</span>
                       </div>
                     )}
+                    {appliedCode && (
+                      <div className="flex justify-between text-emerald-600">
+                        <span className="font-light">Discount Applied ({appliedCode})</span>
+                        <span className="font-semibold">-{discountPercent}%</span>
+                      </div>
+                    )}
                     <div className="border-t border-black/5 pt-2 flex justify-between text-sm font-semibold mt-1">
                       <span className="text-[#2d2520]">Total Amount</span>
                       <span className="text-[#e8573a]">₹{getBookingPrice().toLocaleString('en-IN')}</span>
                     </div>
+                  </div>
+
+                  {/* Discount Code Section */}
+                  <div className="p-4 rounded-2xl bg-white border border-black/5 space-y-3">
+                    {suggestedCode && !appliedCode && (
+                      <div className="p-3 rounded-xl text-[11px] bg-[#d4a574]/10 border border-[#d4a574]/20 text-[#2d2520] flex items-center justify-between">
+                        <span>✨ Try suggested code: <strong className="font-bold">{suggestedCode}</strong></span>
+                        <button 
+                          onClick={() => {
+                            setDiscountCodeInput(suggestedCode);
+                            setAppliedCode(suggestedCode);
+                            const percent = parseInt(suggestedCode.match(/\d+/)?.[0] || '10', 10);
+                            setDiscountPercent(percent);
+                          }}
+                          className="px-2.5 py-1 text-[10px] font-bold bg-[#d4a574] text-white rounded-lg hover:opacity-90 transition"
+                        >
+                          Apply
+                        </button>
+                      </div>
+                    )}
+                    
+                    {appliedCode ? (
+                      <div className="flex items-center justify-between text-xs font-medium text-emerald-600 bg-emerald-50 border border-emerald-100 p-3 rounded-xl">
+                        <span>✅ Code <strong>{appliedCode}</strong> applied ({discountPercent}% Off!)</span>
+                        <button 
+                          onClick={() => {
+                            setAppliedCode('');
+                            setDiscountPercent(0);
+                            setDiscountCodeInput('');
+                          }}
+                          className="text-[#e8573a] hover:underline text-[10px] font-bold"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <input 
+                          type="text" 
+                          placeholder="Promo or Discount Code" 
+                          value={discountCodeInput} 
+                          onChange={e => setDiscountCodeInput(e.target.value.toUpperCase())}
+                          className="flex-grow px-4 py-2.5 rounded-xl text-xs font-medium outline-none border border-black/10 focus:border-[#d4a574] placeholder:text-[#8a7968]/50"
+                          style={{ background: '#fafafa' }}
+                        />
+                        <button 
+                          onClick={() => {
+                            const code = discountCodeInput.trim();
+                            if (code) {
+                              setAppliedCode(code);
+                              const percent = parseInt(code.match(/\d+/)?.[0] || '10', 10);
+                              setDiscountPercent(percent);
+                            }
+                          }}
+                          className="px-4 text-xs font-semibold bg-[#2d2520] text-white rounded-xl hover:opacity-90 transition"
+                        >
+                          Apply
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   {/* Payment Method Selector */}
@@ -842,11 +976,82 @@ export function ExperienceModal({ isOpen, onClose, action, type }: ExperienceMod
                           </div>
                           <p className="text-[10px] text-[#8a7968] text-center">Scan using GooglePay, PhonePe, Paytm, or BHIM</p>
                         </div>
-                        <div className="relative">
-                          <input type="text" placeholder="Enter UPI ID (e.g. name@okhdfcbank)" value={upiId} onChange={e => setUpiId(e.target.value)}
-                            className="w-full px-5 py-4 rounded-2xl text-sm font-medium outline-none transition-all focus:border-[#d4a574]/60 placeholder:text-[#8a7968]/50"
-                            style={{ background: '#fafafa', border: '1.5px solid rgba(0,0,0,0.08)', color: '#2d2520' }} />
+
+                        {/* Direct booking screenshot validation option */}
+                        <div className="flex items-start gap-2.5 p-3 rounded-2xl border border-dashed border-[#d4a574]/40 bg-[#d4a574]/5">
+                          <input 
+                            type="checkbox" 
+                            id="manual-upi-toggle" 
+                            checked={isManualUpi} 
+                            onChange={e => setIsManualUpi(e.target.checked)}
+                            className="mt-0.5 w-4 h-4 rounded border-black/10 text-[#d4a574] focus:ring-[#d4a574]"
+                          />
+                          <label htmlFor="manual-upi-toggle" className="text-xs font-medium text-[#2d2520] cursor-pointer">
+                            <span className="font-semibold text-[#d4a574] block">Book without direct payment</span>
+                            Pay manually via the QR above & upload proof screenshot below to request booking validation.
+                          </label>
                         </div>
+
+                        {isManualUpi ? (
+                          <div className="space-y-4 pt-3 border-t border-black/5">
+                            <div>
+                              <label className="text-[11px] font-semibold text-[#8a7968] mb-1.5 block">12-Digit UPI Transaction ID / UTR Number *</label>
+                              <input 
+                                type="text" 
+                                placeholder="Enter 12-digit UTR (e.g. 612345678901)" 
+                                value={utrNumber} 
+                                onChange={e => setUtrNumber(e.target.value.replace(/\D/g, '').slice(0, 12))}
+                                className="w-full px-4 py-3.5 rounded-xl text-xs font-medium outline-none border border-black/10 focus:border-[#d4a574] placeholder:text-[#8a7968]/50"
+                                style={{ background: '#fafafa' }}
+                              />
+                            </div>
+                            
+                            <div>
+                              <label className="text-[11px] font-semibold text-[#8a7968] mb-1.5 block">Upload Payment Screenshot *</label>
+                              <input 
+                                type="file" 
+                                id="payment-screenshot-upload" 
+                                className="hidden" 
+                                accept="image/*"
+                                onChange={e => {
+                                  if (e.target.files && e.target.files[0]) {
+                                    const file = e.target.files[0];
+                                    setScreenshotFileName(file.name);
+                                    const reader = new FileReader();
+                                    reader.onloadend = () => {
+                                      setPaymentScreenshot(reader.result as string);
+                                    };
+                                    reader.readAsDataURL(file);
+                                  }
+                                }}
+                              />
+                              <div 
+                                onClick={() => document.getElementById('payment-screenshot-upload')?.click()}
+                                className="w-full border-2 border-dashed border-black/10 rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition hover:bg-[#d4a574]/5"
+                                style={{
+                                  borderColor: paymentScreenshot ? '#5a9e6f' : 'rgba(0,0,0,0.1)',
+                                  background: paymentScreenshot ? 'rgba(90,158,111,0.03)' : 'transparent'
+                                }}
+                              >
+                                <Upload className="w-5 h-5 mb-2" style={{ color: paymentScreenshot ? '#5a9e6f' : '#d4a574' }} />
+                                <span className="text-xs font-medium text-[#2d2520]">
+                                  {paymentScreenshot ? 'Screenshot Uploaded!' : 'Click to Upload Screenshot'}
+                                </span>
+                                {screenshotFileName ? (
+                                  <span className="text-[10px] text-[#8a7968] mt-1 font-mono">{screenshotFileName}</span>
+                                ) : (
+                                  <span className="text-[10px] text-[#8a7968] mt-1">Upload the successful transaction screen photo</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="relative">
+                            <input type="text" placeholder="Enter UPI ID (e.g. name@okhdfcbank)" value={upiId} onChange={e => setUpiId(e.target.value)}
+                              className="w-full px-5 py-4 rounded-2xl text-sm font-medium outline-none transition-all focus:border-[#d4a574]/60 placeholder:text-[#8a7968]/50"
+                              style={{ background: '#fafafa', border: '1.5px solid rgba(0,0,0,0.08)', color: '#2d2520' }} />
+                          </div>
+                        )}
                       </div>
                     ) : paymentMethod === 'card' ? (
                       <div className="space-y-3">
@@ -878,6 +1083,12 @@ export function ExperienceModal({ isOpen, onClose, action, type }: ExperienceMod
                     )}
                   </div>
 
+                  {error && (
+                    <div className="p-4 rounded-2xl text-xs font-semibold border border-red-500/20 text-red-600 bg-red-50 text-center animate-shake">
+                      ⚠️ {error}
+                    </div>
+                  )}
+
                   <div className="flex gap-3">
                     <button
                       onClick={() => setStep(1)}
@@ -885,14 +1096,26 @@ export function ExperienceModal({ isOpen, onClose, action, type }: ExperienceMod
                     >
                       Back
                     </button>
-                    <button
-                      onClick={handleSubmit}
-                      disabled={submitting}
-                      className="flex-grow py-4 rounded-2xl text-white font-medium text-sm flex items-center justify-center gap-2 transition-all hover:opacity-90 shadow-lg shadow-[#d4a574]/15"
-                      style={{ background: 'linear-gradient(135deg, #d4a574 0%, #e8573a 100%)' }}
-                    >
-                      {submitting ? 'Confirming Transaction...' : `Pay & Book Surprise (₹${getBookingPrice().toLocaleString('en-IN')})`}
-                    </button>
+                    
+                    {/* Only display/enable the primary book button if manual details are fulfilled (when manual check is toggled) */}
+                    {(!isManualUpi || (utrNumber.trim().length === 12 && paymentScreenshot)) ? (
+                      <button
+                        onClick={handleSubmit}
+                        disabled={submitting}
+                        className="flex-grow py-4 rounded-2xl text-white font-medium text-sm flex items-center justify-center gap-2 transition-all hover:opacity-90 shadow-lg shadow-[#d4a574]/15"
+                        style={{ background: 'linear-gradient(135deg, #d4a574 0%, #e8573a 100%)' }}
+                      >
+                        {submitting 
+                          ? 'Confirming Transaction...' 
+                          : isManualUpi 
+                          ? 'Book Event with Proof' 
+                          : `Pay & Book Surprise (₹${getBookingPrice().toLocaleString('en-IN')})`}
+                      </button>
+                    ) : (
+                      <div className="flex-grow p-3 rounded-2xl bg-amber-50 border border-amber-100 text-[10px] text-amber-700 font-semibold text-center flex items-center justify-center">
+                        ⚠️ Please enter 12-digit UTR & upload Screenshot to show the Book Button.
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (

@@ -14,6 +14,7 @@ import { StoryUploadScreen } from './components/StoryUploadScreen';
 import { BottomNav } from './components/BottomNav';
 import { OnboardingFlow } from '../pages/OnboardingFlow';
 import { useLocation } from 'react-router';
+import { AdminScreen } from './components/AdminScreen';
 
 // Full-screen loading state
 function LoadingScreen() {
@@ -115,6 +116,9 @@ export default function App() {
               <Route path="/gallery" element={<GalleryHomeScreen />} />
               <Route path="/gallery/:templateId" element={<MemoryStoryScreen />} />
               <Route path="/gallery/:templateId/upload" element={<StoryUploadScreen />} />
+
+              {/* Admin Panel */}
+              <Route path="/admin" element={<AdminScreen />} />
 
               {/* Fallback */}
               <Route path="*" element={<Navigate to="/" replace />} />
