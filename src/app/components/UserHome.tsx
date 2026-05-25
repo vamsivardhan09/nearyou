@@ -43,10 +43,55 @@ export function UserHome() {
   const [nudgeIdx, setNudgeIdx] = useState(0);
   const [greetingIdx] = useState(() => Math.floor(Math.random() * 3));
   const [showProfile, setShowProfile] = useState(false);
+  const [events, setEvents] = useState<any[]>([]);
+  const [importantDates, setImportantDates] = useState<any[]>([]);
 
   useEffect(() => {
     const t = setInterval(() => setNudgeIdx(i => (i + 1) % NUDGES.length), 3500);
     return () => clearInterval(t);
+  }, []);
+
+  useEffect(() => {
+    // Load events from localStorage
+    const customEventsStr = localStorage.getItem('nearyou_events');
+    const customEvents = customEventsStr ? JSON.parse(customEventsStr) : [];
+    
+    const formattedCustom = customEvents.map((ev: any) => ({
+      id: ev.id,
+      name: ev.receiver_name,
+      type: ev.event_type.charAt(0).toUpperCase() + ev.event_type.slice(1) + ' Surprise',
+      date: new Date(ev.event_date),
+      memories: localStorage.getItem(`nearyou_memories_${ev.id}`) 
+        ? JSON.parse(localStorage.getItem(`nearyou_memories_${ev.id}`) || '[]').length 
+        : ev.memoriesCount || 0,
+      target: ev.targetMemories || 15
+    }));
+
+    const defaultEvents = [
+      { id: '1', name: 'Mom', type: 'Birthday Experience', date: addDays(new Date(), 7), memories: 12, target: 20 },
+      { id: '2', name: 'Arjun & Priya', type: 'Couple Surprise', date: addDays(new Date(), 32), memories: 5, target: 15 },
+    ];
+    
+    setEvents([...formattedCustom, ...defaultEvents]);
+
+    // Load dates
+    const customDatesStr = localStorage.getItem('nearyou_important_dates');
+    const customDates = customDatesStr ? JSON.parse(customDatesStr) : [];
+    
+    const formattedDates = customDates.map((d: any) => ({
+      id: d.id,
+      title: d.title,
+      date: new Date(d.date)
+    }));
+
+    const defaultDates = [
+      { id: '1', title: "Mom's Birthday", date: addDays(new Date(), 7) },
+      { id: '2', title: 'Parents Anniversary', date: addDays(new Date(), 40) },
+      { id: '3', title: "Sister's Graduation", date: addDays(new Date(), 68) },
+    ];
+    
+    const mergedDates = [...formattedDates, ...defaultDates].sort((a, b) => a.date.getTime() - b.date.getTime());
+    setImportantDates(mergedDates);
   }, []);
 
   const nudge = NUDGES[nudgeIdx];
@@ -302,8 +347,9 @@ export function UserHome() {
                 <button onClick={() => navigate('/dashboard')} className="text-sm font-medium text-[#d4a574] flex items-center gap-1">View all <ArrowRight className="w-3.5 h-3.5" /></button>
               </div>
               <div className="space-y-4">
-                {MOCK_EVENTS.map((ev, i) => {
-                  const days = differenceInDays(ev.date, new Date());
+                {events.map((ev, i) => {
+                  const days = differenceInDays(new Date(ev.date), new Date());
+                  const isPast = days < 0;
                   const pct = Math.round((ev.memories / ev.target) * 100);
                   return (
                     <motion.div key={ev.id} initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
@@ -317,7 +363,7 @@ export function UserHome() {
                           <h3 className="font-medium text-lg text-[#2d2520]">{ev.name}'s Surprise</h3>
                         </div>
                         <span className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full text-[#e8573a] bg-[#e8573a]/10">
-                          <Clock className="w-3 h-3" /> {days === 0 ? 'Today!' : `${days}d left`}
+                          <Clock className="w-3 h-3" /> {isPast ? 'Revealed' : days === 0 ? 'Today!' : `${days}d left`}
                         </span>
                       </div>
                       <div className="flex items-center justify-between text-xs font-light mb-1.5 text-[#8a7968]">
@@ -411,19 +457,20 @@ export function UserHome() {
                 <h2 className="font-normal text-lg text-[#2d2520]">Upcoming Dates</h2>
               </div>
               <div className="rounded-3xl p-5" style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 8px 30px rgba(0,0,0,0.03)' }}>
-                {MOCK_DATES.map((item, i) => {
-                  const days = differenceInDays(item.date, new Date());
-                  const urgent = days <= 14;
+                {importantDates.map((item, i) => {
+                  const days = differenceInDays(new Date(item.date), new Date());
+                  const isUpcoming = days >= 0;
+                  const urgent = isUpcoming && days <= 14;
                   return (
-                    <div key={item.id} className={`flex items-center gap-3 py-3 ${i < MOCK_DATES.length - 1 ? 'border-b border-black/5' : ''}`}>
+                    <div key={item.id} className={`flex items-center gap-3 py-3 ${i < importantDates.length - 1 ? 'border-b border-black/5' : ''}`}>
                       <div className="w-10 h-10 rounded-xl flex flex-col items-center justify-center bg-black/5 border border-black/10 flex-shrink-0">
-                        <span className="text-[9px] uppercase font-medium text-[#8a7968]">{item.date.toLocaleDateString('en-IN', { month: 'short' })}</span>
-                        <span className="text-sm font-semibold text-[#d4a574]">{item.date.getDate()}</span>
+                        <span className="text-[9px] uppercase font-medium text-[#8a7968]">{new Date(item.date).toLocaleDateString('en-IN', { month: 'short' })}</span>
+                        <span className="text-sm font-semibold text-[#d4a574]">{new Date(item.date).getDate()}</span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-sm text-[#2d2520] truncate">{item.title}</p>
                         <p className="text-xs font-light" style={{ color: urgent ? '#e8573a' : '#8a7968' }}>
-                          {days === 0 ? 'Today!' : `In ${days} days`}
+                          {!isUpcoming ? 'Past' : days === 0 ? 'Today!' : `In ${days} days`}
                         </p>
                       </div>
                       {urgent && <span className="w-2 h-2 rounded-full bg-[#e8573a] flex-shrink-0" />}

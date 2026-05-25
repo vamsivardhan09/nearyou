@@ -29,13 +29,19 @@ export function MemoryUploadScreen({ onNavigate }: MemoryUploadScreenProps) {
   }, [id]);
 
   const fetchMemories = async () => {
-    // Mock local fetch
-    setTimeout(() => {
-      setUploadedItems([
+    if (!id) return;
+    const memStr = localStorage.getItem(`nearyou_memories_${id}`);
+    const localMems = memStr ? JSON.parse(memStr) : [];
+    
+    if (localMems.length === 0 && (id === 'demo_event_1' || id === '1' || id === '2')) {
+      const defaultMems = [
         { id: 'mock1', contributor_name: 'Rahul', media_type: 'photo' },
         { id: 'mock2', contributor_name: 'Priya', media_type: 'message', text_content: 'Love you!' }
-      ]);
-    }, 500);
+      ];
+      setUploadedItems(defaultMems);
+    } else {
+      setUploadedItems(localMems);
+    }
   };
 
   const uploadTypes = [
@@ -55,14 +61,20 @@ export function MemoryUploadScreen({ onNavigate }: MemoryUploadScreenProps) {
     setUploading(true);
     setError(null);
     try {
-      // Mock upload to local state
       await new Promise(r => setTimeout(r, 800));
       const newItem = {
-        id: `mock_${Date.now()}`,
+        id: `mem_${Date.now()}`,
         contributor_name: contributorName,
         media_type: activeTab,
+        created_at: new Date().toISOString()
       };
-      setUploadedItems(prev => [newItem, ...prev]);
+      
+      const existingStr = localStorage.getItem(`nearyou_memories_${id}`);
+      const existing = existingStr ? JSON.parse(existingStr) : [];
+      const updated = [newItem, ...existing];
+      localStorage.setItem(`nearyou_memories_${id}`, JSON.stringify(updated));
+      
+      setUploadedItems(updated);
     } catch (err: any) {
       setError(err.message || 'Upload failed');
     } finally {
@@ -80,15 +92,21 @@ export function MemoryUploadScreen({ onNavigate }: MemoryUploadScreenProps) {
     setUploading(true);
     setError(null);
     try {
-      // Mock save message to local state
       await new Promise(r => setTimeout(r, 600));
       const newItem = {
-        id: `mock_${Date.now()}`,
+        id: `mem_${Date.now()}`,
         contributor_name: contributorName,
-        media_type: 'text',
+        media_type: 'message',
         text_content: message,
+        created_at: new Date().toISOString()
       };
-      setUploadedItems(prev => [newItem, ...prev]);
+      
+      const existingStr = localStorage.getItem(`nearyou_memories_${id}`);
+      const existing = existingStr ? JSON.parse(existingStr) : [];
+      const updated = [newItem, ...existing];
+      localStorage.setItem(`nearyou_memories_${id}`, JSON.stringify(updated));
+      
+      setUploadedItems(updated);
       setMessage('');
     } catch (err: any) {
       setError(err.message || 'Saving message failed');

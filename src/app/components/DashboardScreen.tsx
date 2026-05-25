@@ -18,31 +18,85 @@ export function DashboardScreen({ onNavigate }: DashboardScreenProps) {
   const initials = displayName ? displayName.slice(0, 2).toUpperCase() : 'CN';
   const handleSignOut = async () => { await signOut(); navigate('/'); };
 
-  const [events, setEvents] = useState<any[]>([
-    {
-      id: 'demo_event_1',
-      event_type: 'birthday',
-      receiver_name: 'Mom',
-      event_date: addDays(new Date(), 12).toISOString(),
-    }
-  ]);
-  const [recentMemories, setRecentMemories] = useState<any[]>([
-    { id: '1', media_type: 'photo', contributor_name: 'Rahul', created_at: new Date().toISOString(), events: { receiver_name: 'Mom' } }
-  ]);
-  const [importantDates, setImportantDates] = useState<any[]>([
-    { id: '1', title: "Mom's Birthday", date: addDays(new Date(), 12).toISOString(), type: 'birthday' },
-    { id: '2', title: 'Our Anniversary', date: addDays(new Date(), 45).toISOString(), type: 'anniversary' },
-  ]);
+  const [events, setEvents] = useState<any[]>([]);
+  const [recentMemories, setRecentMemories] = useState<any[]>([]);
+  const [importantDates, setImportantDates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // State for Add Date form
   const [showAddDate, setShowAddDate] = useState(false);
   const [newDate, setNewDate] = useState({ title: '', date: '', type: 'birthday' });
 
-  // Mock data fetch delay
+  // Fetch data from localStorage on mount/user change
   useEffect(() => {
     if (!user) return;
     setLoading(true);
+
+    // 1. Fetch events
+    const customEventsStr = localStorage.getItem('nearyou_events');
+    const customEvents = customEventsStr ? JSON.parse(customEventsStr) : [];
+    
+    const formattedCustom = customEvents.map((ev: any) => ({
+      id: ev.id,
+      event_type: ev.event_type,
+      receiver_name: ev.receiver_name,
+      event_date: ev.event_date,
+      progress: ev.progress || 10,
+      memoriesCount: localStorage.getItem(`nearyou_memories_${ev.id}`) 
+        ? JSON.parse(localStorage.getItem(`nearyou_memories_${ev.id}`) || '[]').length 
+        : ev.memoriesCount || 0,
+      targetMemories: ev.targetMemories || 15
+    }));
+
+    const defaultEvents = [
+      {
+        id: 'demo_event_1',
+        event_type: 'birthday',
+        receiver_name: 'Mom',
+        event_date: addDays(new Date(), 12).toISOString(),
+        progress: 60,
+        memoriesCount: 12,
+        targetMemories: 20
+      }
+    ];
+
+    setEvents([...formattedCustom, ...defaultEvents]);
+
+    // 2. Fetch important dates
+    const customDatesStr = localStorage.getItem('nearyou_important_dates');
+    const customDates = customDatesStr ? JSON.parse(customDatesStr) : [];
+
+    const defaultDates = [
+      { id: '1', title: "Mom's Birthday", date: addDays(new Date(), 12).toISOString(), type: 'birthday' },
+      { id: '2', title: 'Our Anniversary', date: addDays(new Date(), 45).toISOString(), type: 'anniversary' },
+    ];
+
+    setImportantDates([...customDates, ...defaultDates].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
+
+    // 3. Fetch recent memories
+    const allMemories: any[] = [];
+    customEvents.forEach((ev: any) => {
+      const memStr = localStorage.getItem(`nearyou_memories_${ev.id}`);
+      if (memStr) {
+        const mems = JSON.parse(memStr);
+        mems.forEach((m: any) => {
+          allMemories.push({
+            id: m.id,
+            media_type: m.media_type,
+            contributor_name: m.contributor_name,
+            created_at: m.created_at || new Date().toISOString(),
+            events: { receiver_name: ev.receiver_name }
+          });
+        });
+      }
+    });
+
+    const defaultMemories = [
+      { id: '1', media_type: 'photo', contributor_name: 'Rahul', created_at: new Date().toISOString(), events: { receiver_name: 'Mom' } }
+    ];
+
+    setRecentMemories([...allMemories, ...defaultMemories].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
+
     const t = setTimeout(() => setLoading(false), 500);
     return () => clearTimeout(t);
   }, [user]);
@@ -56,7 +110,19 @@ export function DashboardScreen({ onNavigate }: DashboardScreenProps) {
 
   const handleAddDate = () => {
     if (!newDate.title || !newDate.date) return;
-    const newEntry = { id: Date.now().toString(), ...newDate };
+    const newEntry = { 
+      id: `date_${Date.now()}`, 
+      user_id: user?.id || 'local_user',
+      title: newDate.title, 
+      date: new Date(newDate.date).toISOString(), 
+      type: newDate.type,
+      created_at: new Date().toISOString()
+    };
+    
+    const customDatesStr = localStorage.getItem('nearyou_important_dates');
+    const customDates = customDatesStr ? JSON.parse(customDatesStr) : [];
+    localStorage.setItem('nearyou_important_dates', JSON.stringify([newEntry, ...customDates]));
+    
     setImportantDates(prev => [...prev, newEntry].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
     setShowAddDate(false);
     setNewDate({ title: '', date: '', type: 'birthday' });
@@ -208,12 +274,20 @@ export function DashboardScreen({ onNavigate }: DashboardScreenProps) {
 
                       {/* Mini Progress */}
                       <div className="mt-auto pt-5 border-t border-[rgba(0,0,0,0.06)]">
-                        <div className="flex items-center justify-between text-xs font-light mb-2 text-[#8a7968]">
-                          <span>Emotional Preparation</span>
-                          <span className="text-[#d4a574] font-medium">Active</span>
+                        <div className="flex items-center justify-between text-[#8a7968] text-xs font-light mb-2">
+                          <span>Memory Collection</span>
+                          <span className="text-[#d4a574] font-medium">
+                            {event.memoriesCount || 0}/{event.targetMemories || 15}
+                          </span>
                         </div>
                         <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.06)' }}>
-                          <div className="h-full rounded-full w-[65%]" style={{ background: 'linear-gradient(90deg, #d4a574, #e8573a)' }} />
+                          <div 
+                            className="h-full rounded-full" 
+                            style={{ 
+                              background: 'linear-gradient(90deg, #d4a574, #e8573a)',
+                              width: `${Math.min(100, Math.round(((event.memoriesCount || 0) / (event.targetMemories || 15)) * 100))}%`
+                            }} 
+                          />
                         </div>
                       </div>
                     </div>

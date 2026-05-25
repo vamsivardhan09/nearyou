@@ -130,8 +130,8 @@ export function EventCreationScreen({ onNavigate }: EventCreationScreenProps) {
 
   const canNext = () => {
     if (step === 1) return !!form.eventType;
-    if (step === 2) return !!form.receiverName && !!form.eventDate;
-    if (step === 3) return !!form.emotionalStory;
+    if (step === 2) return form.receiverName.trim().length >= 2 && !!form.eventDate;
+    if (step === 3) return form.emotionalStory.trim().length >= 10;
     return true;
   };
 
@@ -139,10 +139,46 @@ export function EventCreationScreen({ onNavigate }: EventCreationScreenProps) {
     setLoading(true);
     setError('');
     try {
-      // Mock local event creation
-      await new Promise(r => setTimeout(r, 600));
-      const mockEventId = `local_evt_${Date.now()}`;
-      navigate(`/event/${mockEventId}`);
+      await new Promise(r => setTimeout(r, 800));
+      const newEventId = `evt_${Date.now()}`;
+      
+      const newEvent = {
+        id: newEventId,
+        creator_id: user?.id || 'local_user',
+        event_type: form.eventType,
+        receiver_name: form.receiverName,
+        relationship: form.relationship || 'Other',
+        event_date: form.eventDate,
+        city: form.city || '',
+        story: form.emotionalStory,
+        important_people: form.importantPeople || '',
+        memories: form.memories || '',
+        invites: form.invites.split('\n').map(e => e.trim()).filter(e => e.includes('@')),
+        created_at: new Date().toISOString(),
+        progress: 10,
+        memoriesCount: 0,
+        targetMemories: 15
+      };
+
+      // Save event
+      const existingEventsStr = localStorage.getItem('nearyou_events');
+      const existingEvents = existingEventsStr ? JSON.parse(existingEventsStr) : [];
+      localStorage.setItem('nearyou_events', JSON.stringify([newEvent, ...existingEvents]));
+
+      // Save associated date
+      const existingDatesStr = localStorage.getItem('nearyou_important_dates');
+      const existingDates = existingDatesStr ? JSON.parse(existingDatesStr) : [];
+      const newDateItem = {
+        id: `date_${Date.now()}`,
+        user_id: user?.id || 'local_user',
+        title: `${form.receiverName}'s ${EVENT_TYPES.find(e => e.id === form.eventType)?.label || 'Surprise'}`,
+        date: form.eventDate,
+        type: form.eventType,
+        created_at: new Date().toISOString()
+      };
+      localStorage.setItem('nearyou_important_dates', JSON.stringify([newDateItem, ...existingDates]));
+
+      navigate(`/event/${newEventId}`);
     } catch (e: any) {
       setError(e.message || 'Something went wrong. Please try again.');
     } finally {
