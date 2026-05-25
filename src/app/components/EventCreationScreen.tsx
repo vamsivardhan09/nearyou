@@ -9,6 +9,7 @@ import {
 import { differenceInDays } from 'date-fns';
 import { useAuth } from '../../context/AuthContext';
 import { recordAndCheckBooking } from '../../lib/fraudProtection';
+import { supabase } from '../../lib/supabaseClient';
 
 interface EventCreationScreenProps {
   onNavigate?: (screen: string) => void;
@@ -32,6 +33,7 @@ interface FormData {
 const EVENT_TYPES = [
   { id: 'birthday', label: 'Birthday', emoji: '🎂', desc: 'A milestone worth celebrating across every mile' },
   { id: 'couple', label: 'Long Distance Couple', emoji: '💑', desc: 'Keep love alive when distance tries to dim it' },
+  { id: 'memory', label: 'Memory Forever', emoji: '⏳', desc: 'Preserve the moments that shaped who you are' },
   { id: 'parents', label: 'Parents Tribute', emoji: '🙏', desc: 'Honor those who gave you everything' },
   { id: 'wedding', label: 'Wedding / Anniversary', emoji: '💍', desc: 'Celebrate a beautiful bond and new beginnings' },
   { id: 'reunion', label: 'Reunion Surprise', emoji: '🤗', desc: 'Make the moment of coming together unforgettable' },
@@ -52,6 +54,12 @@ const ORGANIZATION_DETAILS: Record<string, string[]> = {
     "Step 2: Voice Collections — We securely prompt mutual friends to record brief messages about your connection.",
     "Step 3: Custom Love Gallery — We construct a beautiful, passcode-locked digital page featuring your photo archives and emotional audio tapes.",
     "Step 4: Synchronized Midnight Reveal — The private archive unlocks automatically at midnight on your selected anniversary date."
+  ],
+  memory: [
+    "Step 1: Outreaching Loved Ones — We quietly collect throwing back pictures, memories, and voice messages from everyone who matters.",
+    "Step 2: Designing Layout — We structure an elegant digital scrapbook displaying the beautiful timeline of your life.",
+    "Step 3: Music & Emotional Touch — We add warm background music and personalized calligraphies.",
+    "Step 4: Lifetime Preservation — Your memory book remains online forever, serving as a legacy for the whole family."
   ],
   parents: [
     "Step 1: Generation Reunion — We quietly reach out to children, grandchildren, siblings, and old family friends.",
@@ -235,6 +243,48 @@ export function EventCreationScreen({ onNavigate }: EventCreationScreenProps) {
         created_at: new Date().toISOString()
       };
       localStorage.setItem('nearyou_important_dates', JSON.stringify([newDateItem, ...existingDates]));
+
+      // Create a booking record to sync with the Admin Panel (with clean properties for Supabase)
+      const packagePrices: Record<string, number> = {
+        memory: 2999,
+        couple: 4999,
+        birthday: 6999,
+        wedding: 7999,
+        parents: 8999
+      };
+      const price = packagePrices[form.eventType] || 5999;
+      
+      const newBooking = {
+        id: 'NY-EV-' + Date.now().toString().slice(-6) + Math.floor(10 + Math.random() * 90),
+        recipientName: form.receiverName || 'Recipient',
+        targetDate: form.eventDate || new Date().toISOString().split('T')[0],
+        message: form.emotionalStory || '',
+        location: form.city || 'Digital Delivery',
+        budget: form.eventType || 'base',
+        whatsappNumber: null,
+        recipientEmail: null,
+        extraText1: form.relationship || null,
+        extraSelect1: null,
+        surpriseTitle: (EVENT_TYPES.find(e => e.id === form.eventType)?.label || 'Custom') + ' Experience',
+        surpriseType: 'real-world',
+        price: price,
+        paymentMethod: 'Pre-booked (Awaiting Checkout)',
+        utrNumber: null,
+        paymentScreenshot: null,
+        appliedDiscountCode: null,
+        status: 'Pending Verification',
+        createdAt: new Date().toLocaleString()
+      };
+
+      // Save to Supabase (non-blocking, fails gracefully if tables aren't created yet)
+      try {
+        const { error } = await supabase.from('nearyou_bookings').insert([newBooking]);
+        if (error) {
+          console.warn('Failed to save event booking to Supabase:', error.message);
+        }
+      } catch (dbErr) {
+        console.warn('Supabase DB connection error:', dbErr);
+      }
 
       navigate(`/event/${newEventId}`);
     } catch (e: any) {
