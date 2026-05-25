@@ -28,115 +28,126 @@ export type RealWorldExperience = {
   timeline: string;
   budget: string;
   teamRole: string;
+  priceRupees: number;
+  category: 'keepsake' | 'personal' | 'grand';
+  flowSteps?: string[];
 };
 
 export const REAL_WORLD_EXPERIENCES: RealWorldExperience[] = [
   {
+    id: 'photo-frame',
+    title: 'Photo Frame with Surprise',
+    desc: 'Send a physical premium wooden photo frame containing a custom memory photo, paired with an emotional surprise message card.',
+    image: '/images/photo_frame.png',
+    timeline: 'Delivered in 2-4 days',
+    budget: '₹299',
+    priceRupees: 299,
+    category: 'keepsake',
+    teamRole: 'We print your custom photo on high-gloss archival paper, frame it in a premium wooden border, design your surprise message, and courier the package right to their doorstep.',
+    flowSteps: [
+      'Enter delivery date & upload your favorite photo in the form.',
+      'We professionally print and fit your memory photo into a premium wooden frame.',
+      'We design and print your surprise emotional message card with elegant calligraphy.',
+      'The package is surprise-wrapped and dispatched via express courier to deliver on your requested date.'
+    ]
+  },
+  {
+    id: 'sketch-portrait',
+    title: 'Custom Sketch Portrait',
+    desc: 'A hand-drawn pencil/digital sketch of your favorite photo together, created by a professional local artist.',
+    image: '/images/sketch_art.png',
+    timeline: 'Requires 4 days notice',
+    budget: '₹399',
+    priceRupees: 399,
+    category: 'keepsake',
+    teamRole: 'Our network of local sketch artists hand-craft your portrait digitally or on canvas, package it securely, and deliver it with a customized gift tag.'
+  },
+  {
+    id: 'blood-art',
+    title: 'Blood Art & Fingerprints',
+    desc: 'A custom symbolic canvas artwork combining beautiful fingerprint patterns and emotional blood-art calligraphy representing deep connection.',
+    image: '/images/sketch_art.png',
+    timeline: 'Requires 3 days notice',
+    budget: '₹499',
+    priceRupees: 499,
+    category: 'keepsake',
+    teamRole: 'We create a custom artistic canvas rendering of your combined fingerprint outlines styled with premium dark red organic ink calligraphy of your names/vows.'
+  },
+  {
+    id: 'tattoos',
+    title: 'Custom Temporary Tattoos',
+    desc: 'A custom sheet of skin-safe, temporary tattoos designed using your shared symbols, nicknames, or inside joke icons.',
+    image: '/images/sketch_art.png',
+    timeline: 'Requires 2 days notice',
+    budget: '₹299',
+    priceRupees: 299,
+    category: 'keepsake',
+    teamRole: 'Our graphics team designs custom silhouette art for your icons/symbols and prints a premium sheet of long-lasting temporary tattoos, shipped with instructions.'
+  },
+  {
+    id: 'singer',
+    title: 'Live Singer Doorstep',
+    desc: 'A professional local musician arrives at their doorstep or workplace to sing a custom acoustic set of songs that hold special meaning for you both.',
+    image: '/images/music_surprise.png',
+    timeline: 'Requires 3 days notice',
+    budget: '₹1,499',
+    priceRupees: 1499,
+    category: 'personal',
+    teamRole: 'We audition local talent, brief them on the emotional context, help select the perfect songs, and coordinate their arrival surprise.'
+  },
+  {
+    id: 'cafe',
+    title: 'Cafe Message & Song',
+    desc: 'We coordinate with their favorite local cafe to serve them a customized coffee cup with your message, and play their favorite song when they walk in.',
+    image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800',
+    timeline: 'Requires 3 days notice',
+    budget: '₹799',
+    priceRupees: 799,
+    category: 'personal',
+    teamRole: 'We coordinate with the baristas to execute the custom cup, queue their special song on the cafe speakers, and hand over a secret letter.'
+  },
+  {
+    id: 'wall',
+    title: 'Personalized Memory Wall',
+    desc: 'A mini-art gallery style layout of 10-15 printed memories set up on easel stands in a cozy room or private space.',
+    image: 'https://images.unsplash.com/photo-1507643179773-3e975d7ac515?w=800',
+    timeline: 'Requires 5 days notice',
+    budget: '₹1,199',
+    priceRupees: 1199,
+    category: 'personal',
+    teamRole: 'We print museum-quality copies of your memories, source mini-easel displays, and set them up with delicate fairy lighting in their room or venue.'
+  },
+  {
     id: 'cinema',
     title: 'Cinema Theater Surprise',
-    desc: 'Project your emotional message or memory video on the big screen right before their movie starts.',
-    image: 'https://images.unsplash.com/photo-1517604931442-7e0c8ed2963c?w=800',
-    timeline: 'Requires 3-5 days notice',
-    budget: '$150 - $400',
-    teamRole: 'We coordinate with local theater management, handle media formatting, and time the surprise perfectly with the projectionist.'
+    desc: 'Project your emotional message or memory video on the big screen right before their movie starts in a local multiplex.',
+    image: '/images/cinema_surprise.png',
+    timeline: 'Requires 5 days notice',
+    budget: '₹4,999',
+    priceRupees: 4999,
+    category: 'grand',
+    teamRole: 'We coordinate with local theater multiplex management, format your videos/messages for the theater projector, and time the surprise perfectly with the showtime.'
   },
   {
     id: 'led',
     title: 'Public LED Screen Message',
-    desc: 'Light up their city. Display a massive, beautifully designed emotional message on a digital billboard they drive by.',
+    desc: 'Display a massive, beautifully animated billboard message on a busy highway or commercial hub they pass through.',
     image: 'https://images.unsplash.com/photo-1543362906-acfc16c67564?w=800',
     timeline: 'Requires 7 days notice',
-    budget: '$300 - $1000+',
-    teamRole: 'We secure ad slots, design the cinematic typography, and ensure optimal timing for when they pass by.'
+    budget: '₹9,999',
+    priceRupees: 9999,
+    category: 'grand',
+    teamRole: 'We secure premium digital billboard slots, design clean high-impact typography, and ensure the message runs exactly during their commute schedule.'
   },
   {
     id: 'room',
     title: 'Room Decoration Surprise',
-    desc: 'Transform their living space into an immersive memory lane with polaroids, warm lighting, and flowers.',
+    desc: 'A full romantic or celebratory room makeover with LED string lights, customized photo balloons, and fresh flowers while they are away.',
     image: 'https://images.unsplash.com/photo-1513151233558-d860c5398176?w=800',
     timeline: 'Requires 2 days notice',
-    budget: '$100 - $250',
-    teamRole: 'We partner with local decorators or roommates/family to set up the space secretly while they are out.'
-  },
-  {
-    id: 'flashmob',
-    title: 'Flash Mob Experience',
-    desc: 'A cinematic, highly choreographed public surprise to their favorite song in the middle of their day.',
-    image: 'https://images.unsplash.com/photo-1533147670608-2a2f9775d3a4?w=800',
-    timeline: 'Requires 14 days notice',
-    budget: '$500 - $1500',
-    teamRole: 'We hire local dancers, manage choreography, secure public permits, and capture the whole moment on video.'
-  },
-  {
-    id: 'proposal',
-    title: 'Proposal Setup',
-    desc: 'The ultimate emotional moment, meticulously planned. You just have to bring the ring and the words.',
-    image: 'https://images.unsplash.com/photo-1518104593124-ac2e82a5eb9b?w=800',
-    timeline: 'Requires 14-30 days notice',
-    budget: '$500 - $2000+',
-    teamRole: 'We handle location scouting, floral arrangements, hidden photography, and a seamless emotional timeline.'
-  },
-  {
-    id: 'cafe',
-    title: 'Cafe Surprise',
-    desc: 'Their regular coffee run turns into a memory. A custom cup, a live musician, or a hidden message from you.',
-    image: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=800',
-    timeline: 'Requires 3 days notice',
-    budget: '$50 - $150',
-    teamRole: 'We coordinate with the baristas and cafe owner to execute the surprise flawlessly during their daily routine.'
-  },
-  {
-    id: 'airport',
-    title: 'Airport Welcome Surprise',
-    desc: 'Turn a tiring flight into an emotional homecoming with a coordinated family/friends welcome and beautiful signage.',
-    image: 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=800',
-    timeline: 'Requires 5 days notice',
-    budget: '$100 - $300',
-    teamRole: 'We organize the contributors, design premium welcome boards, and track flight delays to ensure perfect timing.'
-  },
-  {
-    id: 'radio',
-    title: 'Radio Message',
-    desc: 'A heartfelt message and their favorite song played on their favorite local radio station during their commute.',
-    image: 'https://images.unsplash.com/photo-1588661601614-2394c8e7fb2a?w=800',
-    timeline: 'Requires 7 days notice',
-    budget: '$100 - $400',
-    teamRole: 'We negotiate with radio producers to secure a prime time slot and ensure your message is read beautifully.'
-  },
-  {
-    id: 'singer',
-    title: 'Live Singer Surprise',
-    desc: 'A talented local musician shows up at their door or workplace to sing a song that means the world to you both.',
-    image: 'https://images.unsplash.com/photo-1516280440502-a27170a75f3a?w=800',
-    timeline: 'Requires 5 days notice',
-    budget: '$150 - $350',
-    teamRole: 'We audition local talent, brief them on the emotional context, and coordinate their arrival.'
-  },
-  {
-    id: 'prank',
-    title: 'Emotional Prank Surprise',
-    desc: 'Start with a mild, harmless annoyance that suddenly reveals itself to be a massive outpouring of love and memories.',
-    image: 'https://images.unsplash.com/photo-1527529482837-4698179dc6ce?w=800',
-    timeline: 'Requires 10 days notice',
-    budget: '$200 - $600',
-    teamRole: 'We script the scenario, hire actors if necessary, and ensure the reveal is caught on camera without stressing the receiver.'
-  },
-  {
-    id: 'photographer',
-    title: 'Hidden Photographer Surprise',
-    desc: 'We arrange a beautiful moment (like a picnic) while a hidden photographer captures their genuine emotional reactions.',
-    image: 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800',
-    timeline: 'Requires 7 days notice',
-    budget: '$250 - $600',
-    teamRole: 'We book premium lifestyle photographers, plan the hiding spots, and deliver beautifully edited high-res galleries.'
-  },
-  {
-    id: 'wall',
-    title: 'Emotional Memory Wall',
-    desc: 'An art gallery style installation of your best memories together, set up in a public or private space for them to discover.',
-    image: 'https://images.unsplash.com/photo-1507643179773-3e975d7ac515?w=800',
-    timeline: 'Requires 7 days notice',
-    budget: '$150 - $500',
-    teamRole: 'We print museum-quality photos, source easels or frames, and set up the installation perfectly before they arrive.'
+    budget: '₹2,499',
+    priceRupees: 2499,
+    category: 'grand',
+    teamRole: 'We coordinate setup with decorators or trusted helpers, providing premium metallic helium balloons, custom hanging photostrips, and warm fairy lights.'
   }
 ];

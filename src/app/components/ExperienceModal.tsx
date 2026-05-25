@@ -23,10 +23,12 @@ export function ExperienceModal({ isOpen, onClose, action, type }: ExperienceMod
   const [budget, setBudget] = useState('');
 
   const [selectedRealWorld, setSelectedRealWorld] = useState<RealWorldExperience | null>(null);
+  const [categoryFilter, setCategoryFilter] = useState<'all' | 'keepsake' | 'personal' | 'grand'>('all');
 
   useEffect(() => {
     if (!isOpen) {
       setSelectedRealWorld(null);
+      setCategoryFilter('all');
       setStep(1);
       setReceiver(''); setDate(''); setMessage(''); setLocation(''); setBudget('');
     }
@@ -86,7 +88,7 @@ export function ExperienceModal({ isOpen, onClose, action, type }: ExperienceMod
             {/* Real World Listing Grid */}
             {isListingRealWorld && (
               <div className="w-full">
-                <div className="flex items-start justify-between mb-8">
+                <div className="flex items-start justify-between mb-6">
                   <div>
                     <h3 className="font-normal text-2xl text-[#2d2520]">Real-World Surprises</h3>
                     <p className="font-light text-sm text-[#8a7968] mt-1">Unforgettable physical moments, coordinated by our team.</p>
@@ -95,17 +97,59 @@ export function ExperienceModal({ isOpen, onClose, action, type }: ExperienceMod
                     <X className="w-4 h-4" />
                   </button>
                 </div>
+
+                {/* Filter Tabs */}
+                <div className="flex gap-2 overflow-x-auto pb-4 mb-6 no-scrollbar">
+                  {(['all', 'keepsake', 'personal', 'grand'] as const).map(cat => {
+                    const label = {
+                      all: 'All Surprises',
+                      keepsake: 'Keepsakes (Under ₹500)',
+                      personal: 'Personal (₹500 - ₹2000)',
+                      grand: 'Grand Events (₹2000+)'
+                    }[cat];
+                    const active = categoryFilter === cat;
+                    return (
+                      <button
+                        key={cat}
+                        onClick={() => setCategoryFilter(cat)}
+                        className={`text-xs px-4 py-2 rounded-full font-medium whitespace-nowrap transition-all border ${
+                          active
+                            ? 'bg-[#d4a574] text-white border-[#d4a574]'
+                            : 'bg-white text-[#8a7968] border-black/5 hover:border-black/10'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+
                 <div className="grid sm:grid-cols-2 gap-4">
-                  {REAL_WORLD_EXPERIENCES.map((exp, i) => (
+                  {REAL_WORLD_EXPERIENCES.filter(exp => categoryFilter === 'all' || exp.category === categoryFilter).map((exp, i) => (
                     <motion.div key={exp.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
                       onClick={() => setSelectedRealWorld(exp)}
                       className="group cursor-pointer rounded-2xl overflow-hidden flex flex-col transition-all hover:-translate-y-1"
                       style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.06)', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}>
                       <div className="h-32 relative overflow-hidden">
                         <img src={exp.image} alt={exp.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[rgba(0,0,0,0.6)] to-transparent" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[rgba(0,0,0,0.7)] via-[rgba(0,0,0,0.3)] to-transparent" />
+                        <div className="absolute top-3 right-3 text-[10px] font-semibold tracking-wide bg-[#fdfbf8] text-[#e8573a] px-2.5 py-1 rounded-full shadow-md border border-black/5">
+                          {exp.budget}
+                        </div>
                         <div className="absolute bottom-3 left-4 right-4">
+                          <span className="text-[9px] uppercase tracking-wider font-semibold text-[#d4a574] mb-0.5 block">
+                            {exp.category === 'keepsake' ? 'Keepsake & Art' : exp.category === 'personal' ? 'Personal Surprise' : 'Grand Setup'}
+                          </span>
                           <h4 className="text-white font-normal text-sm leading-tight">{exp.title}</h4>
+                        </div>
+                      </div>
+                      <div className="p-4 bg-white flex-grow flex flex-col justify-between">
+                        <p className="text-[11px] font-light text-[#8a7968] line-clamp-2 leading-relaxed mb-3">
+                          {exp.desc}
+                        </p>
+                        <div className="flex justify-between items-center text-[10px] text-[#d4a574] font-medium pt-2 border-t border-black/5">
+                          <span>{exp.timeline}</span>
+                          <span className="group-hover:translate-x-1 transition-transform">Configure →</span>
                         </div>
                       </div>
                     </motion.div>
@@ -135,17 +179,38 @@ export function ExperienceModal({ isOpen, onClose, action, type }: ExperienceMod
             {/* Real World Details */}
             {!isDigital && !isListingRealWorld && realWorld && step === 1 && (
               <div className="mb-6">
-                <h3 className="font-normal text-2xl mb-2 text-[#2d2520]">{realWorld.title}</h3>
+                <div className="flex justify-between items-start mb-2">
+                  <h3 className="font-normal text-2xl text-[#2d2520]">{realWorld.title}</h3>
+                  <span className="text-[11px] font-semibold text-white px-2.5 py-1 rounded-full bg-[#e8573a] shadow-sm">
+                    {realWorld.budget}
+                  </span>
+                </div>
                 <p className="font-light text-sm leading-relaxed mb-4 text-[#8a7968]">{realWorld.desc}</p>
 
-                <div className="p-4 rounded-2xl mb-6 space-y-3" style={{ background: 'linear-gradient(135deg, rgba(212,165,116,0.1), rgba(212,165,116,0.05))', border: '1px solid rgba(212,165,116,0.2)' }}>
-                  <p className="text-xs font-medium text-[#d4a574] uppercase tracking-wider">How we do it</p>
-                  <p className="font-light text-xs leading-relaxed text-[#8a7968]">{realWorld.teamRole}</p>
-                  <div className="flex flex-wrap gap-3 pt-2">
-                    <span className="text-[10px] font-medium px-2.5 py-1 rounded-full bg-[#ffffff] border border-black/5 shadow-sm text-[#d4a574]">{realWorld.timeline}</span>
-                    <span className="text-[10px] font-medium px-2.5 py-1 rounded-full bg-[#ffffff] border border-black/5 shadow-sm text-[#d4a574]">Est. {realWorld.budget}</span>
+                {realWorld.flowSteps ? (
+                  <div className="mb-6 p-5 rounded-2xl space-y-4" style={{ background: 'linear-gradient(135deg, rgba(212,165,116,0.08), rgba(232,87,58,0.03))', border: '1px solid rgba(212,165,116,0.15)' }}>
+                    <p className="text-xs font-semibold text-[#d4a574] uppercase tracking-wider mb-1">📦 Delivery & Crafting Workflow</p>
+                    <div className="relative border-l border-[#d4a574]/30 ml-2.5 pl-5 space-y-4">
+                      {realWorld.flowSteps.map((stepDesc, idx) => (
+                        <div key={idx} className="relative">
+                          {/* Dot indicator */}
+                          <div className="absolute -left-[26px] top-1 w-3.5 h-3.5 rounded-full border-2 border-[#fdfbf8] bg-[#d4a574]" />
+                          <div className="text-[11px] font-semibold text-[#2d2520]">Step {idx + 1}</div>
+                          <p className="text-[11px] font-light text-[#8a7968] mt-0.5 leading-relaxed">{stepDesc}</p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="p-4 rounded-2xl mb-6 space-y-3" style={{ background: 'linear-gradient(135deg, rgba(212,165,116,0.1), rgba(212,165,116,0.05))', border: '1px solid rgba(212,165,116,0.2)' }}>
+                    <p className="text-xs font-medium text-[#d4a574] uppercase tracking-wider">How we do it</p>
+                    <p className="font-light text-xs leading-relaxed text-[#8a7968]">{realWorld.teamRole}</p>
+                    <div className="flex flex-wrap gap-3 pt-2">
+                      <span className="text-[10px] font-medium px-2.5 py-1 rounded-full bg-[#ffffff] border border-black/5 shadow-sm text-[#d4a574]">{realWorld.timeline}</span>
+                      <span className="text-[10px] font-medium px-2.5 py-1 rounded-full bg-[#ffffff] border border-black/5 shadow-sm text-[#d4a574]">Est. {realWorld.budget}</span>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -177,14 +242,14 @@ export function ExperienceModal({ isOpen, onClose, action, type }: ExperienceMod
                   )}
                 </div>
 
-                {!isDigital && (
+                {!isDigital && realWorld && (
                   <select value={budget} onChange={e => setBudget(e.target.value)}
                     className="w-full px-5 py-4 rounded-2xl text-sm font-medium outline-none appearance-none bg-no-repeat bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M6%209L12%2015L18%209%22%20stroke%3D%22%23d4a574%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E')] bg-[position:right_1rem_center] transition-all focus:border-[#d4a574]/60"
                     style={{ background: '#fafafa', border: '1.5px solid rgba(0,0,0,0.08)', color: '#2d2520' }}>
-                    <option value="" disabled className="bg-[#ffffff] text-[#8a7968]">Select Budget Range</option>
-                    <option value="low" className="bg-[#ffffff] text-[#2d2520]">Minimum ({realWorld.budget?.split('-')[0]})</option>
-                    <option value="medium" className="bg-[#ffffff] text-[#2d2520]">Standard Experience</option>
-                    <option value="high" className="bg-[#ffffff] text-[#2d2520]">Premium / Grand Setup</option>
+                    <option value="" disabled className="bg-[#ffffff] text-[#8a7968]">Select Experience Version</option>
+                    <option value="base" className="bg-[#ffffff] text-[#2d2520]">Base Experience ({realWorld.budget})</option>
+                    <option value="premium" className="bg-[#ffffff] text-[#2d2520]">Premium Upgrade (+₹499 for premium gift wrap/lettering)</option>
+                    <option value="grand" className="bg-[#ffffff] text-[#2d2520]">Exclusive Setup (+₹1,999 for full HD delivery vlog recording)</option>
                   </select>
                 )}
 
@@ -195,8 +260,14 @@ export function ExperienceModal({ isOpen, onClose, action, type }: ExperienceMod
                 <div className="w-full border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition-colors hover:bg-[#d4a574]/5 hover:border-[#d4a574]/30"
                   style={{ borderColor: 'rgba(0,0,0,0.1)' }}>
                   <Upload className="w-6 h-6 mb-2 text-[#d4a574]" />
-                  <p className="text-sm font-medium text-[#2d2520]">Upload Memories</p>
-                  <p className="text-xs font-light text-[#8a7968] text-center mt-1">Videos, audio notes, or photos for the surprise</p>
+                  <p className="text-sm font-medium text-[#2d2520]">
+                    {realWorld?.id === 'photo-frame' ? 'Upload Photo for Frame' : 'Upload Memories'}
+                  </p>
+                  <p className="text-xs font-light text-[#8a7968] text-center mt-1">
+                    {realWorld?.id === 'photo-frame' 
+                      ? 'Upload the photo to be printed and fitted inside the physical keepsake frame' 
+                      : 'Videos, audio notes, or photos for the surprise'}
+                  </p>
                 </div>
 
                 <button onClick={handleSubmit} disabled={submitting || !receiver}
@@ -212,12 +283,16 @@ export function ExperienceModal({ isOpen, onClose, action, type }: ExperienceMod
                   <Heart className="w-10 h-10 text-white fill-white" />
                 </div>
                 <h3 className="text-2xl font-normal mb-2 text-[#2d2520]">
-                  {isDigital ? 'Scheduled Beautifully.' : 'Request Received.'}
+                  {isDigital ? 'Scheduled Beautifully.' : (realWorld?.category === 'keepsake' ? 'Keepsake Ordered!' : 'Request Received.')}
                 </h3>
                 <p className="text-sm font-medium text-[#8a7968] max-w-[280px]">
                   {isDigital
                     ? "Your emotional message is set for delivery. They will love it."
-                    : "Our coordination team will review your request and contact you within 24 hours to begin planning this unforgettable moment."}
+                    : (realWorld?.id === 'photo-frame' 
+                      ? "Your photo frame surprise order has been placed. We are preparing it for delivery on your chosen date." 
+                      : realWorld?.category === 'keepsake'
+                      ? "Your custom keepsake artwork order has been registered. We'll start crafting it right away."
+                      : "Our coordination team will review your request and contact you within 24 hours to begin planning this unforgettable moment.")}
                 </p>
               </div>
             ))}
