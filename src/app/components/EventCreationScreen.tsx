@@ -276,6 +276,16 @@ export function EventCreationScreen({ onNavigate }: EventCreationScreenProps) {
         createdAt: new Date().toLocaleString()
       };
 
+      // Save booking to localStorage nearyou_bookings
+      try {
+        const existingBookingsStr = localStorage.getItem('nearyou_bookings');
+        const bookingsList = existingBookingsStr ? JSON.parse(existingBookingsStr) : [];
+        bookingsList.push(newBooking);
+        localStorage.setItem('nearyou_bookings', JSON.stringify(bookingsList));
+      } catch (lsErr) {
+        console.warn('Failed to save booking to localStorage:', lsErr);
+      }
+
       // Save to Supabase (non-blocking, fails gracefully if tables aren't created yet)
       try {
         const { error } = await supabase.from('nearyou_bookings').insert([newBooking]);

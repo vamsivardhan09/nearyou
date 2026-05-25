@@ -44,61 +44,77 @@ export function SingleEventDashboard() {
   useEffect(() => {
     if (!id) return;
     
-    // Look up event in localStorage
-    const customEventsStr = localStorage.getItem('nearyou_events');
-    const customEvents = customEventsStr ? JSON.parse(customEventsStr) : [];
-    const found = customEvents.find((ev: any) => ev.id === id);
-    
-    if (found) {
-      setEvent(found);
-    } else {
-      // Fallback to default mock events
-      const defaultEvents = [
-        {
-          id: 'demo_event_1',
-          event_type: 'birthday',
-          receiver_name: 'Mom',
-          relationship: 'Parent',
-          event_date: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000).toISOString(),
-          city: 'Mumbai',
-          story: 'Mom has always been our rock. This is a surprise tribute for her birthday.',
-          invites: ['rahul@email.com', 'priya@email.com', 'aunty@email.com'],
-          targetMemories: 20
-        },
-        {
-          id: '1',
-          event_type: 'birthday',
-          receiver_name: 'Mom',
-          relationship: 'Parent',
-          event_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-          city: 'Mumbai',
-          story: 'Mom has always been our rock. This is a surprise tribute for her birthday.',
-          invites: ['rahul@email.com', 'priya@email.com', 'aunty@email.com'],
-          targetMemories: 20
-        },
-        {
-          id: '2',
-          event_type: 'couple',
-          receiver_name: 'Arjun & Priya',
-          relationship: 'Partner / Spouse',
-          event_date: new Date(Date.now() + 32 * 24 * 60 * 60 * 1000).toISOString(),
-          city: 'Delhi',
-          story: 'Long distance couples surprise celebration.',
-          invites: ['amit@email.com', 'neha@email.com'],
-          targetMemories: 15
-        }
-      ];
-      
-      const defaultFound = defaultEvents.find((ev: any) => ev.id === id);
-      if (defaultFound) {
-        setEvent(defaultFound);
+    try {
+      // Look up event in localStorage
+      const customEventsStr = localStorage.getItem('nearyou_events');
+      let customEvents: any[] = [];
+      try {
+        customEvents = customEventsStr ? JSON.parse(customEventsStr) : [];
+      } catch (parseErr) {
+        console.warn('Failed to parse nearyou_events from localStorage:', parseErr);
+        customEvents = [];
       }
-    }
+      const found = customEvents.find((ev: any) => ev.id === id);
+      
+      if (found) {
+        setEvent(found);
+      } else {
+        // Fallback to default mock events
+        const defaultEvents = [
+          {
+            id: 'demo_event_1',
+            event_type: 'birthday',
+            receiver_name: 'Mom',
+            relationship: 'Parent',
+            event_date: new Date(Date.now() + 12 * 24 * 60 * 60 * 1000).toISOString(),
+            city: 'Mumbai',
+            story: 'Mom has always been our rock. This is a surprise tribute for her birthday.',
+            invites: ['rahul@email.com', 'priya@email.com', 'aunty@email.com'],
+            targetMemories: 20
+          },
+          {
+            id: '1',
+            event_type: 'birthday',
+            receiver_name: 'Mom',
+            relationship: 'Parent',
+            event_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+            city: 'Mumbai',
+            story: 'Mom has always been our rock. This is a surprise tribute for her birthday.',
+            invites: ['rahul@email.com', 'priya@email.com', 'aunty@email.com'],
+            targetMemories: 20
+          },
+          {
+            id: '2',
+            event_type: 'couple',
+            receiver_name: 'Arjun & Priya',
+            relationship: 'Partner / Spouse',
+            event_date: new Date(Date.now() + 32 * 24 * 60 * 60 * 1000).toISOString(),
+            city: 'Delhi',
+            story: 'Long distance couples surprise celebration.',
+            invites: ['amit@email.com', 'neha@email.com'],
+            targetMemories: 15
+          }
+        ];
+        
+        const defaultFound = defaultEvents.find((ev: any) => ev.id === id);
+        if (defaultFound) {
+          setEvent(defaultFound);
+        }
+      }
 
-    // Load memories for this event from localStorage
-    const memStr = localStorage.getItem(`nearyou_memories_${id}`);
-    const customMems = memStr ? JSON.parse(memStr) : [];
-    setMemories(customMems);
+      // Load memories for this event from localStorage
+      const memStr = localStorage.getItem(`nearyou_memories_${id}`);
+      let customMems: any[] = [];
+      try {
+        customMems = memStr ? JSON.parse(memStr) : [];
+      } catch (parseErr) {
+        console.warn('Failed to parse memories from localStorage:', parseErr);
+        customMems = [];
+      }
+      setMemories(customMems);
+    } catch (e) {
+      console.error('Error loading event data:', e);
+    }
     
     setLoading(false);
   }, [id]);
@@ -106,7 +122,7 @@ export function SingleEventDashboard() {
   const getCountdownParts = () => {
     if (!event) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
     const totalMs = new Date(event.event_date).getTime() - Date.now();
-    if (totalMs <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
+    if (isNaN(totalMs) || totalMs <= 0) return { days: 0, hours: 0, minutes: 0, seconds: 0 };
     
     const days = Math.floor(totalMs / (1000 * 60 * 60 * 24));
     const hours = Math.floor((totalMs / (1000 * 60 * 60)) % 24);

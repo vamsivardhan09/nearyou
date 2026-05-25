@@ -916,6 +916,17 @@ export function ExperienceModal({ isOpen, onClose, action, type }: ExperienceMod
                           placeholder="Promo or Discount Code" 
                           value={discountCodeInput} 
                           onChange={e => setDiscountCodeInput(e.target.value.toUpperCase())}
+                          onKeyDown={e => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              const code = discountCodeInput.trim();
+                              if (code) {
+                                setAppliedCode(code);
+                                const percent = parseInt(code.match(/\d+/)?.[0] || '10', 10);
+                                setDiscountPercent(percent);
+                              }
+                            }
+                          }}
                           className="flex-grow px-4 py-2.5 rounded-xl text-xs font-medium outline-none border border-black/10 focus:border-[#d4a574] placeholder:text-[#8a7968]/50"
                           style={{ background: '#fafafa' }}
                         />

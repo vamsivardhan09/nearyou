@@ -13,8 +13,9 @@ import { MemoryStoryScreen } from './components/MemoryStoryScreen';
 import { StoryUploadScreen } from './components/StoryUploadScreen';
 import { BottomNav } from './components/BottomNav';
 import { OnboardingFlow } from '../pages/OnboardingFlow';
-import { useLocation } from 'react-router';
+import { useLocation, useNavigate } from 'react-router';
 import { AdminScreen } from './components/AdminScreen';
+import { ErrorBoundary } from './components/ErrorBoundary';
 
 // Full-screen loading state
 function LoadingScreen() {
@@ -39,6 +40,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 // Bottom nav wrapper (hides on certain routes)
 function AppLayout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
   
   // Hide nav on creation/upload flows and public landing
@@ -46,7 +48,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const hideNav = !user || location.pathname === '/' || hideNavPaths.some(p => location.pathname.startsWith(p));
 
   const handleNavigate = (screen: string) => {
-    window.location.href = screen === 'home' ? '/home' : `/${screen}`;
+    navigate(screen === 'home' ? '/home' : `/${screen}`);
   };
 
   return (
@@ -70,6 +72,7 @@ export default function App() {
       <AuthProvider>
         <BrowserRouter>
         <div className="min-h-screen pb-16 md:pb-0 font-light text-[#2d2520]" style={{ background: '#fdfbf8' }}>
+          <ErrorBoundary>
           <AppLayout>
             <Routes>
               {/* Public landing */}
@@ -124,6 +127,7 @@ export default function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </AppLayout>
+          </ErrorBoundary>
         </div>
       </BrowserRouter>
     </AuthProvider>

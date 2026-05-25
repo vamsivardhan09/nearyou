@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Shield, Check, X, Calendar, MapPin, Clock, Eye, Trash2, Database, ArrowLeft, User, Phone, Lock, Users, LogOut, CheckCircle2 } from 'lucide-react';
+import { Shield, Check, X, Calendar, MapPin, Clock, Eye, Trash2, Database, ArrowLeft, User, Phone, Lock, Users, LogOut, CheckCircle2, RefreshCw } from 'lucide-react';
 import { supabase } from '../../lib/supabaseClient';
 
 interface SavedBooking {
@@ -48,79 +48,148 @@ export function AdminScreen() {
   const [selectedBooking, setSelectedBooking] = useState<SavedBooking | null>(null);
   const [screenshotModalUrl, setScreenshotModalUrl] = useState<string | null>(null);
 
-  // Load Bookings & Users from Supabase, fallback to localStorage
+  // Load Bookings & Users from Supabase AND localStorage, merging both
   const loadData = async () => {
     try {
-      // 1. Fetch Bookings from Supabase
-      let finalBookings: SavedBooking[] = [];
-      let dbFailed = false;
+      // 1. Fetch Bookings — merge Supabase + localStorage
+      let supabaseBookings: SavedBooking[] = [];
+      let localBookings: SavedBooking[] = [];
+      let supabaseAvailable = false;
+
+      // Try Supabase first
       try {
         const { data, error } = await supabase
           .from('nearyou_bookings')
           .select('*');
           
-        if (error) {
-          throw new Error(error.message);
-        }
-        if (data) {
-          finalBookings = data as SavedBooking[];
-          // Sort safely to prevent white screen crash if some createdAt fields are null or missing
-          finalBookings.sort((a, b) => {
-            const dateA = a.createdAt || '';
-            const dateB = b.createdAt || '';
-            return dateB.localeCompare(dateA);
-          });
+        if (!error && data) {
+          supabaseAvailable = true;
+          supabaseBookings = (data as SavedBooking[]).map(b => ({
+            ...b,
+            price: typeof b.price === 'number' ? b.price : Number(b.price) || 0,
+          }));
+        } else if (error) {
+          console.warn('Supabase bookings query failed:', error.message);
         }
       } catch (dbErr) {
-        console.warn('Failed to load bookings from Supabase, falling back to local storage:', dbErr);
-        dbFailed = true;
+        console.warn('Failed to connect to Supabase for bookings:', dbErr);
       }
-      
-      // Fallback to local storage ONLY if database query failed
-      if (dbFailed && finalBookings.length === 0) {
+
+      // Always load localStorage too
+      try {
         const storedBookings = localStorage.getItem('nearyou_bookings');
         if (storedBookings) {
-          finalBookings = JSON.parse(storedBookings);
+          const parsed = JSON.parse(storedBookings);
+          if (Array.isArray(parsed)) {
+            localBookings = parsed;
+          }
+        }
+      } catch (parseErr) {
+        console.warn('Failed to parse local bookings:', parseErr);
+      }
+
+      // Merge & deduplicate by ID (Supabase takes priority)
+      const bookingMap = new Map<string, SavedBooking>();
+      if (Array.isArray(localBookings)) {
+        localBookings.forEach(b => {
+          if (b && b.id) bookingMap.set(b.id, b);
+        });
+      }
+      if (Array.isArray(supabaseBookings)) {
+        supabaseBookings.forEach(b => {
+          if (b && b.id) bookingMap.set(b.id, b);
+        });
+      }
+      const mergedBookings = Array.from(bookingMap.values());
+
+      // Sort safely
+      mergedBookings.sort((a, b) => {
+        const dateA = a.createdAt || '';
+        const dateB = b.createdAt || '';
+        try {
+          return dateB.localeCompare(dateA);
+        } catch {
+          return 0;
+        }
+      });
+
+      setBookings(mergedBookings);
+
+      // Sync: push any local-only bookings to Supabase
+      if (supabaseAvailable && Array.isArray(localBookings)) {
+        const supabaseIds = new Set(supabaseBookings.map(b => b.id));
+        const localOnly = localBookings.filter(b => !supabaseIds.has(b.id));
+        if (localOnly.length > 0) {
+          try {
+            // Sanitize bookings: remove paymentScreenshot (too large for DB)
+            const sanitized = localOnly.map(b => ({
+              ...b,
+              paymentScreenshot: b.paymentScreenshot && b.paymentScreenshot.length > 5000 
+                ? null 
+                : b.paymentScreenshot,
+            }));
+            await supabase.from('nearyou_bookings').upsert(sanitized, { onConflict: 'id' });
+            console.log(`Synced ${localOnly.length} local-only booking(s) to Supabase`);
+          } catch (syncErr) {
+            console.warn('Failed to sync local bookings to Supabase:', syncErr);
+          }
         }
       }
-      setBookings(finalBookings);
 
-      // 2. Fetch Users from Supabase
-      let finalUsers: RegisterUser[] = [];
-      let usersDbFailed = false;
+      // 2. Fetch Users — same merge approach
+      let supabaseUsers: RegisterUser[] = [];
+      let localUsers: RegisterUser[] = [];
+
       try {
         const { data, error } = await supabase
           .from('nearyou_all_users')
           .select('*');
           
-        if (error) {
-          throw new Error(error.message);
-        }
-        if (data) {
-          finalUsers = data as RegisterUser[];
+        if (!error && data) {
+          supabaseUsers = data as RegisterUser[];
         }
       } catch (dbErr) {
-        console.warn('Failed to load users from Supabase, falling back to local storage:', dbErr);
-        usersDbFailed = true;
+        console.warn('Failed to load users from Supabase:', dbErr);
       }
 
-      // Fallback to local storage ONLY if database query failed
-      if (usersDbFailed && finalUsers.length === 0) {
+      try {
         const storedUsers = localStorage.getItem('nearyou_all_users');
         if (storedUsers) {
-          finalUsers = JSON.parse(storedUsers);
-        } else {
-          // Fallback default mock user database
-          const defaultUsers = [
-            { id: 'local_1', fullName: 'Harsha Vardhan', phone: '9876543210' },
-            { id: 'local_2', fullName: 'Priya Sharma', phone: '9123456789' },
-            { id: 'local_3', fullName: 'Rohan Verma', phone: '8877665544' }
-          ];
-          localStorage.setItem('nearyou_all_users', JSON.stringify(defaultUsers));
-          finalUsers = defaultUsers;
+          const parsed = JSON.parse(storedUsers);
+          if (Array.isArray(parsed)) {
+            localUsers = parsed;
+          }
         }
+      } catch (parseErr) {
+        console.warn('Failed to parse local users:', parseErr);
       }
-      setUsers(finalUsers);
+
+      // Merge users
+      const userMap = new Map<string, RegisterUser>();
+      if (Array.isArray(localUsers)) {
+        localUsers.forEach(u => {
+          if (u && u.id) userMap.set(u.id, u);
+        });
+      }
+      if (Array.isArray(supabaseUsers)) {
+        supabaseUsers.forEach(u => {
+          if (u && u.id) userMap.set(u.id, u);
+        });
+      }
+      const mergedUsers = Array.from(userMap.values());
+
+      if (mergedUsers.length === 0) {
+        // Fallback default mock user database
+        const defaultUsers = [
+          { id: 'local_1', fullName: 'Harsha Vardhan', phone: '9876543210' },
+          { id: 'local_2', fullName: 'Priya Sharma', phone: '9123456789' },
+          { id: 'local_3', fullName: 'Rohan Verma', phone: '8877665544' }
+        ];
+        localStorage.setItem('nearyou_all_users', JSON.stringify(defaultUsers));
+        setUsers(defaultUsers);
+      } else {
+        setUsers(mergedUsers);
+      }
     } catch (e) {
       console.error('Error loading data:', e);
     }
@@ -129,6 +198,9 @@ export function AdminScreen() {
   useEffect(() => {
     if (isAdminLoggedIn) {
       loadData();
+      // Auto-refresh every 15 seconds to pick up new bookings
+      const interval = setInterval(loadData, 15000);
+      return () => clearInterval(interval);
     }
   }, [isAdminLoggedIn]);
 
@@ -395,8 +467,14 @@ export function AdminScreen() {
               <p className="font-light text-xs text-[#8a7968] mt-0.5">Manage user bookings, verify transaction receipts, and control surprise statuses.</p>
             </div>
           </div>
-          
           <div className="flex items-center gap-3">
+            <button 
+              onClick={loadData}
+              className="px-4 py-2 text-xs font-semibold rounded-full bg-emerald-50 border border-emerald-100 text-emerald-600 hover:bg-emerald-100 transition flex items-center gap-1.5"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+              Refresh Data
+            </button>
             <button 
               onClick={seedMockBookings}
               className="px-4 py-2 text-xs font-semibold rounded-full bg-[#d4a574]/10 border border-[#d4a574]/20 text-[#d4a574] hover:bg-[#d4a574]/20 transition flex items-center gap-1.5"

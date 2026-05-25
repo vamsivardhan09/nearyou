@@ -1,7 +1,7 @@
 import { useNavigate, useParams } from 'react-router';
 import { motion } from 'framer-motion';
 import {
-  ArrowLeft, Heart, CheckCircle2, Clock, Users, ArrowRight, Camera, MessageCircle, Mic, Video
+  ArrowLeft, Heart, CheckCircle2, Clock, Users, ArrowRight, Camera, MessageCircle, Mic, Video, Star
 } from 'lucide-react';
 import { PACKAGES } from '../../lib/packagesData';
 import { ImageWithFallback } from './figma/ImageWithFallback';
