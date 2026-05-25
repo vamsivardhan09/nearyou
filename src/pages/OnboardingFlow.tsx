@@ -130,6 +130,9 @@ export function OnboardingFlow() {
           <span>Get Started</span><ArrowRight className="w-5 h-5" />
         </motion.button>
         <p className="text-[#5a4030] text-xs text-center mt-5 font-light">By continuing you agree to our Terms & Privacy</p>
+        <button onClick={() => navigate('/admin')} className="text-xs text-center mt-3 text-[#d4a574]/80 hover:text-[#d4a574] hover:underline font-medium mx-auto">
+          🛡️ Admin Control Login
+        </button>
       </div>
     </motion.div>
   );
@@ -204,6 +207,9 @@ export function OnboardingFlow() {
             <span key={l} className="text-xs font-light" style={{ color: '#5a4030' }}>{l}</span>
           ))}
         </div>
+        <button onClick={() => navigate('/admin')} className="text-xs text-center mt-6 text-[#d4a574]/80 hover:text-[#d4a574] hover:underline font-medium block mx-auto">
+          🛡️ Admin Control Login
+        </button>
       </div>
     </motion.div>
   );

@@ -219,14 +219,6 @@ export function UserHome() {
                     View My Dashboard
                   </button>
                   <button
-                    onClick={() => { navigate('/admin'); setShowProfile(false); }}
-                    className="w-full flex items-center gap-3 p-4 rounded-2xl text-sm font-medium transition-all hover:-translate-y-0.5"
-                    style={{ background: '#ffffff', border: '1px solid rgba(212,165,116,0.3)', color: '#d4a574', boxShadow: '0 4px 15px rgba(0,0,0,0.03)' }}
-                  >
-                    <Shield className="w-4 h-4" />
-                    Admin Control Center
-                  </button>
-                  <button
                     onClick={() => { handleSignOut(); setShowProfile(false); }}
                     className="w-full flex items-center gap-3 p-4 rounded-2xl text-sm font-medium transition-all hover:bg-red-50"
                     style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.06)', color: '#8a7968' }}
@@ -257,7 +249,6 @@ export function UserHome() {
                 { label: 'Memory Stories', path: '/gallery' },
                 { label: 'Dashboard', path: '/dashboard' },
                 { label: 'Packages', path: '/packages' },
-                { label: 'Admin Panel', path: '/admin' },
               ].map((link) => (
                 <button
                   key={link.path}
