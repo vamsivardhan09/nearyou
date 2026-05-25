@@ -53,6 +53,7 @@ export function AdminScreen() {
     try {
       // 1. Fetch Bookings from Supabase
       let finalBookings: SavedBooking[] = [];
+      let dbFailed = false;
       try {
         const { data, error } = await supabase
           .from('nearyou_bookings')
@@ -61,17 +62,22 @@ export function AdminScreen() {
         if (error) {
           throw new Error(error.message);
         }
-        if (data && data.length > 0) {
+        if (data) {
           finalBookings = data as SavedBooking[];
-          // Sort by creation time descending
-          finalBookings.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+          // Sort safely to prevent white screen crash if some createdAt fields are null or missing
+          finalBookings.sort((a, b) => {
+            const dateA = a.createdAt || '';
+            const dateB = b.createdAt || '';
+            return dateB.localeCompare(dateA);
+          });
         }
       } catch (dbErr) {
         console.warn('Failed to load bookings from Supabase, falling back to local storage:', dbErr);
+        dbFailed = true;
       }
       
-      // Fallback to local storage if Supabase returned nothing or failed
-      if (finalBookings.length === 0) {
+      // Fallback to local storage ONLY if database query failed
+      if (dbFailed && finalBookings.length === 0) {
         const storedBookings = localStorage.getItem('nearyou_bookings');
         if (storedBookings) {
           finalBookings = JSON.parse(storedBookings);
@@ -81,6 +87,7 @@ export function AdminScreen() {
 
       // 2. Fetch Users from Supabase
       let finalUsers: RegisterUser[] = [];
+      let usersDbFailed = false;
       try {
         const { data, error } = await supabase
           .from('nearyou_all_users')
@@ -89,15 +96,16 @@ export function AdminScreen() {
         if (error) {
           throw new Error(error.message);
         }
-        if (data && data.length > 0) {
+        if (data) {
           finalUsers = data as RegisterUser[];
         }
       } catch (dbErr) {
         console.warn('Failed to load users from Supabase, falling back to local storage:', dbErr);
+        usersDbFailed = true;
       }
 
-      // Fallback to local storage if Supabase returned nothing or failed
-      if (finalUsers.length === 0) {
+      // Fallback to local storage ONLY if database query failed
+      if (usersDbFailed && finalUsers.length === 0) {
         const storedUsers = localStorage.getItem('nearyou_all_users');
         if (storedUsers) {
           finalUsers = JSON.parse(storedUsers);

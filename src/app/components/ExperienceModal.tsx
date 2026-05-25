@@ -541,23 +541,23 @@ export function ExperienceModal({ isOpen, onClose, action, type }: ExperienceMod
       const bookings = existing ? JSON.parse(existing) : [];
       
       const newBooking = {
-        id: 'NY-' + Math.floor(100000 + Math.random() * 900000),
+        id: 'NY-' + Date.now().toString().slice(-6) + Math.floor(10 + Math.random() * 90),
         recipientName: receiver || 'Recipient',
         targetDate: date || new Date().toISOString().split('T')[0],
         message: message || '',
         location: location || 'Digital Delivery',
         budget: budget || 'base',
-        whatsappNumber,
-        recipientEmail,
-        extraText1,
-        extraSelect1,
+        whatsappNumber: whatsappNumber || null,
+        recipientEmail: recipientEmail || null,
+        extraText1: extraText1 || null,
+        extraSelect1: extraSelect1 || null,
         surpriseTitle: isDigital ? digitalAction.label : (realWorld?.title || ''),
         surpriseType: isDigital ? 'digital' : 'real-world',
         price: getBookingPrice(),
         paymentMethod: paymentMethod + (isManualUpi ? ' (Manual UPI Verification)' : ' (Auto Success)'),
-        utrNumber: isManualUpi ? utrNumber : undefined,
-        paymentScreenshot: isManualUpi ? paymentScreenshot : undefined,
-        appliedDiscountCode: appliedCode || undefined,
+        utrNumber: isManualUpi ? (utrNumber || null) : null,
+        paymentScreenshot: isManualUpi ? (paymentScreenshot || null) : null,
+        appliedDiscountCode: appliedCode || null,
         status: isManualUpi ? 'Pending Verification' : 'Approved',
         createdAt: new Date().toLocaleString()
       };

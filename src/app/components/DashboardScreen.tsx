@@ -32,70 +32,105 @@ export function DashboardScreen({ onNavigate }: DashboardScreenProps) {
     if (!user) return;
     setLoading(true);
 
-    // 1. Fetch events
-    const customEventsStr = localStorage.getItem('nearyou_events');
-    const customEvents = customEventsStr ? JSON.parse(customEventsStr) : [];
-    
-    const formattedCustom = customEvents.map((ev: any) => ({
-      id: ev.id,
-      event_type: ev.event_type,
-      receiver_name: ev.receiver_name,
-      event_date: ev.event_date,
-      progress: ev.progress || 10,
-      memoriesCount: localStorage.getItem(`nearyou_memories_${ev.id}`) 
-        ? JSON.parse(localStorage.getItem(`nearyou_memories_${ev.id}`) || '[]').length 
-        : ev.memoriesCount || 0,
-      targetMemories: ev.targetMemories || 15
-    }));
+    try {
+      // 1. Fetch events
+      const customEventsStr = localStorage.getItem('nearyou_events');
+      const customEvents = customEventsStr ? JSON.parse(customEventsStr) : [];
+      
+      const formattedCustom = customEvents.map((ev: any) => ({
+        id: ev.id,
+        event_type: ev.event_type || 'surprise',
+        receiver_name: ev.receiver_name || 'Recipient',
+        event_date: ev.event_date || new Date().toISOString(),
+        progress: ev.progress || 10,
+        memoriesCount: localStorage.getItem(`nearyou_memories_${ev.id}`) 
+          ? JSON.parse(localStorage.getItem(`nearyou_memories_${ev.id}`) || '[]').length 
+          : ev.memoriesCount || 0,
+        targetMemories: ev.targetMemories || 15
+      }));
 
-    const defaultEvents = [
-      {
-        id: 'demo_event_1',
-        event_type: 'birthday',
-        receiver_name: 'Mom',
-        event_date: addDays(new Date(), 12).toISOString(),
-        progress: 60,
-        memoriesCount: 12,
-        targetMemories: 20
-      }
-    ];
+      const defaultEvents = [
+        {
+          id: 'demo_event_1',
+          event_type: 'birthday',
+          receiver_name: 'Mom',
+          event_date: addDays(new Date(), 12).toISOString(),
+          progress: 60,
+          memoriesCount: 12,
+          targetMemories: 20
+        }
+      ];
 
-    setEvents([...formattedCustom, ...defaultEvents]);
+      setEvents([...formattedCustom, ...defaultEvents]);
 
-    // 2. Fetch important dates
-    const customDatesStr = localStorage.getItem('nearyou_important_dates');
-    const customDates = customDatesStr ? JSON.parse(customDatesStr) : [];
+      // 2. Fetch important dates
+      const customDatesStr = localStorage.getItem('nearyou_important_dates');
+      const customDates = customDatesStr ? JSON.parse(customDatesStr) : [];
 
-    const defaultDates = [
-      { id: '1', title: "Mom's Birthday", date: addDays(new Date(), 12).toISOString(), type: 'birthday' },
-      { id: '2', title: 'Our Anniversary', date: addDays(new Date(), 45).toISOString(), type: 'anniversary' },
-    ];
+      const defaultDates = [
+        { id: '1', title: "Mom's Birthday", date: addDays(new Date(), 12).toISOString(), type: 'birthday' },
+        { id: '2', title: 'Our Anniversary', date: addDays(new Date(), 45).toISOString(), type: 'anniversary' },
+      ];
 
-    setImportantDates([...customDates, ...defaultDates].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
+      const sortedDates = [...customDates, ...defaultDates].sort((a, b) => {
+        const timeA = a.date ? new Date(a.date).getTime() : 0;
+        const timeB = b.date ? new Date(b.date).getTime() : 0;
+        return (isNaN(timeA) ? 0 : timeA) - (isNaN(timeB) ? 0 : timeB);
+      });
+      setImportantDates(sortedDates);
 
-    // 3. Fetch recent memories
-    const allMemories: any[] = [];
-    customEvents.forEach((ev: any) => {
-      const memStr = localStorage.getItem(`nearyou_memories_${ev.id}`);
-      if (memStr) {
-        const mems = JSON.parse(memStr);
-        mems.forEach((m: any) => {
-          allMemories.push({
-            id: m.id,
-            media_type: m.media_type,
-            contributor_name: m.contributor_name,
-            created_at: m.created_at || new Date().toISOString(),
-            events: { receiver_name: ev.receiver_name }
-          });
-        });
-      }
-    });
+      // 3. Fetch recent memories
+      const allMemories: any[] = [];
+      customEvents.forEach((ev: any) => {
+        try {
+          const memStr = localStorage.getItem(`nearyou_memories_${ev.id}`);
+          if (memStr) {
+            const mems = JSON.parse(memStr);
+            mems.forEach((m: any) => {
+              allMemories.push({
+                id: m.id,
+                media_type: m.media_type || 'text',
+                contributor_name: m.contributor_name || 'Contributor',
+                created_at: m.created_at || new Date().toISOString(),
+                events: { receiver_name: ev.receiver_name || 'Recipient' }
+              });
+            });
+          }
+        } catch (_) {}
+      });
 
-    const defaultMemories = [
-      { id: '1', media_type: 'photo', contributor_name: 'Rahul', created_at: new Date().toISOString(), events: { receiver_name: 'Mom' } }
-    ];
+      const defaultMemories = [
+        { id: '1', media_type: 'photo', contributor_name: 'Rahul', created_at: new Date().toISOString(), events: { receiver_name: 'Mom' } }
+      ];
 
-    setRecentMemories([...allMemories, ...defaultMemories].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()));
+      const sortedMemories = [...allMemories, ...defaultMemories].sort((a, b) => {
+        const timeA = a.created_at ? new Date(a.created_at).getTime() : 0;
+        const timeB = b.created_at ? new Date(b.created_at).getTime() : 0;
+        return (isNaN(timeB) ? 0 : timeB) - (isNaN(timeA) ? 0 : timeA);
+      });
+      setRecentMemories(sortedMemories);
+    } catch (e) {
+      console.error("Error loading DashboardScreen data:", e);
+      // Clean fallback states to prevent white screen crash
+      setEvents([
+        {
+          id: 'demo_event_1',
+          event_type: 'birthday',
+          receiver_name: 'Mom',
+          event_date: addDays(new Date(), 12).toISOString(),
+          progress: 60,
+          memoriesCount: 12,
+          targetMemories: 20
+        }
+      ]);
+      setImportantDates([
+        { id: '1', title: "Mom's Birthday", date: addDays(new Date(), 12).toISOString(), type: 'birthday' },
+        { id: '2', title: 'Our Anniversary', date: addDays(new Date(), 45).toISOString(), type: 'anniversary' },
+      ]);
+      setRecentMemories([
+        { id: '1', media_type: 'photo', contributor_name: 'Rahul', created_at: new Date().toISOString(), events: { receiver_name: 'Mom' } }
+      ]);
+    }
 
     const t = setTimeout(() => setLoading(false), 500);
     return () => clearTimeout(t);

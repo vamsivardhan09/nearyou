@@ -52,46 +52,78 @@ export function UserHome() {
   }, []);
 
   useEffect(() => {
-    // Load events from localStorage
-    const customEventsStr = localStorage.getItem('nearyou_events');
-    const customEvents = customEventsStr ? JSON.parse(customEventsStr) : [];
-    
-    const formattedCustom = customEvents.map((ev: any) => ({
-      id: ev.id,
-      name: ev.receiver_name,
-      type: ev.event_type.charAt(0).toUpperCase() + ev.event_type.slice(1) + ' Surprise',
-      date: new Date(ev.event_date),
-      memories: localStorage.getItem(`nearyou_memories_${ev.id}`) 
-        ? JSON.parse(localStorage.getItem(`nearyou_memories_${ev.id}`) || '[]').length 
-        : ev.memoriesCount || 0,
-      target: ev.targetMemories || 15
-    }));
+    try {
+      // Load events from localStorage
+      const customEventsStr = localStorage.getItem('nearyou_events');
+      const customEvents = customEventsStr ? JSON.parse(customEventsStr) : [];
+      
+      const formattedCustom = customEvents.map((ev: any) => {
+        let parsedDate = new Date();
+        try {
+          if (ev.event_date) parsedDate = new Date(ev.event_date);
+        } catch (_) {}
 
-    const defaultEvents = [
-      { id: '1', name: 'Mom', type: 'Birthday Experience', date: addDays(new Date(), 7), memories: 12, target: 20 },
-      { id: '2', name: 'Arjun & Priya', type: 'Couple Surprise', date: addDays(new Date(), 32), memories: 5, target: 15 },
-    ];
-    
-    setEvents([...formattedCustom, ...defaultEvents]);
+        return {
+          id: ev.id,
+          name: ev.receiver_name || 'Recipient',
+          type: ev.event_type ? (ev.event_type.charAt(0).toUpperCase() + ev.event_type.slice(1) + ' Surprise') : 'Custom Surprise',
+          date: parsedDate,
+          memories: localStorage.getItem(`nearyou_memories_${ev.id}`) 
+            ? JSON.parse(localStorage.getItem(`nearyou_memories_${ev.id}`) || '[]').length 
+            : ev.memoriesCount || 0,
+          target: ev.targetMemories || 15
+        };
+      });
 
-    // Load dates
-    const customDatesStr = localStorage.getItem('nearyou_important_dates');
-    const customDates = customDatesStr ? JSON.parse(customDatesStr) : [];
-    
-    const formattedDates = customDates.map((d: any) => ({
-      id: d.id,
-      title: d.title,
-      date: new Date(d.date)
-    }));
+      const defaultEvents = [
+        { id: '1', name: 'Mom', type: 'Birthday Experience', date: addDays(new Date(), 7), memories: 12, target: 20 },
+        { id: '2', name: 'Arjun & Priya', type: 'Couple Surprise', date: addDays(new Date(), 32), memories: 5, target: 15 },
+      ];
+      
+      setEvents([...formattedCustom, ...defaultEvents]);
 
-    const defaultDates = [
-      { id: '1', title: "Mom's Birthday", date: addDays(new Date(), 7) },
-      { id: '2', title: 'Parents Anniversary', date: addDays(new Date(), 40) },
-      { id: '3', title: "Sister's Graduation", date: addDays(new Date(), 68) },
-    ];
-    
-    const mergedDates = [...formattedDates, ...defaultDates].sort((a, b) => a.date.getTime() - b.date.getTime());
-    setImportantDates(mergedDates);
+      // Load dates
+      const customDatesStr = localStorage.getItem('nearyou_important_dates');
+      const customDates = customDatesStr ? JSON.parse(customDatesStr) : [];
+      
+      const formattedDates = customDates.map((d: any) => {
+        let parsedDate = new Date();
+        try {
+          if (d.date) parsedDate = new Date(d.date);
+        } catch (_) {}
+
+        return {
+          id: d.id,
+          title: d.title || 'Important Date',
+          date: parsedDate
+        };
+      });
+
+      const defaultDates = [
+        { id: '1', title: "Mom's Birthday", date: addDays(new Date(), 7) },
+        { id: '2', title: 'Parents Anniversary', date: addDays(new Date(), 40) },
+        { id: '3', title: "Sister's Graduation", date: addDays(new Date(), 68) },
+      ];
+      
+      const mergedDates = [...formattedDates, ...defaultDates].sort((a, b) => {
+        const timeA = a.date instanceof Date && !isNaN(a.date.getTime()) ? a.date.getTime() : 0;
+        const timeB = b.date instanceof Date && !isNaN(b.date.getTime()) ? b.date.getTime() : 0;
+        return timeA - timeB;
+      });
+      setImportantDates(mergedDates);
+    } catch (e) {
+      console.error("Error loading events or dates in UserHome:", e);
+      // Fallback defaults to prevent white screen crash
+      setEvents([
+        { id: '1', name: 'Mom', type: 'Birthday Experience', date: addDays(new Date(), 7), memories: 12, target: 20 },
+        { id: '2', name: 'Arjun & Priya', type: 'Couple Surprise', date: addDays(new Date(), 32), memories: 5, target: 15 },
+      ]);
+      setImportantDates([
+        { id: '1', title: "Mom's Birthday", date: addDays(new Date(), 7) },
+        { id: '2', title: 'Parents Anniversary', date: addDays(new Date(), 40) },
+        { id: '3', title: "Sister's Graduation", date: addDays(new Date(), 68) },
+      ]);
+    }
   }, []);
 
   const nudge = NUDGES[nudgeIdx];
