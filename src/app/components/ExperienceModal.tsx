@@ -820,11 +820,25 @@ export function ExperienceModal({ isOpen, onClose, action, type }: ExperienceMod
                   <div className="p-5 rounded-2xl bg-white border border-black/5">
                     {paymentMethod === 'upi' ? (
                       <div className="space-y-4">
-                        <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-slate-50 border border-slate-100">
-                          {/* QR Code placeholder representation */}
-                          <div className="w-32 h-32 bg-slate-200 border-4 border-white shadow-sm flex items-center justify-center relative overflow-hidden mb-2 rounded-lg">
-                            <div className="absolute inset-2 bg-no-repeat bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%22100%22%20height%3D%22100%22%20viewBox%3D%220%200%20100%20100%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Cpath%20d%3D%22M0%200h30v10H10v20H0V0zm70%200h30v30H90V10H70V0zM0%2070h10v20h20v10H0V70zm90%2020V70h10v30H70V90h20z%22%20fill%3D%22%232d2520%22%20fill-opacity%3D%220.6%22%2F%3E%3Crect%20x%3D%2220%22%20y%3D%2220%22%20width%3D%2220%22%20height%3D%2220%22%20fill%3D%22%232d2520%22%20fill-opacity%3D%220.6%22%2F%3E%3Crect%20x%3D%2260%22%20y%3D%2260%22%20width%3D%2220%22%20height%3D%2220%22%20fill%3D%22%232d2520%22%20fill-opacity%3D%220.6%22%2F%3E%3C%2Fsvg%3E')] bg-cover" />
-                            <span className="text-[10px] font-bold text-[#8a7968] z-10 bg-white/90 px-2 py-0.5 rounded shadow-sm">Scan to Pay</span>
+                        <div className="flex flex-col items-center justify-center p-4 rounded-3xl bg-slate-50 border border-slate-100">
+                          {/* Styled QR Code matching the colors in the user's uploaded picture */}
+                          <div className="relative p-[6px] rounded-[32px] overflow-hidden mb-3 shadow-md flex items-center justify-center bg-white"
+                               style={{
+                                 background: 'linear-gradient(to bottom, #00bfff 0%, #00bfff 50%, #00008b 50%, #00008b 100%)',
+                                 width: '180px',
+                                 height: '180px'
+                               }}>
+                            <div className="w-full h-full rounded-[26px] bg-white p-2.5 flex items-center justify-center overflow-hidden">
+                              <img src="/images/payment_qr.jpg" alt="UPI QR Code" className="w-full h-full object-contain" />
+                            </div>
+                          </div>
+                          
+                          {/* Payment details to show when scanning */}
+                          <div className="w-full text-center space-y-1 bg-white p-3 rounded-2xl border border-black/5 mb-2">
+                            <span className="text-[10px] font-semibold text-[#8a7968] uppercase tracking-wider block">Payee Details</span>
+                            <p className="text-xs font-semibold text-[#2d2520]">Nearyou Surprises Pvt Ltd</p>
+                            <p className="text-[10px] font-mono text-[#8a7968]">UPI ID: nearyou@ybl</p>
+                            <p className="text-[11px] font-semibold text-[#e8573a] mt-1">Amount: ₹{getBookingPrice().toLocaleString('en-IN')}</p>
                           </div>
                           <p className="text-[10px] text-[#8a7968] text-center">Scan using GooglePay, PhonePe, Paytm, or BHIM</p>
                         </div>
