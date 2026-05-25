@@ -40,8 +40,8 @@ export const REAL_WORLD_EXPERIENCES: RealWorldExperience[] = [
     desc: 'Send a physical premium wooden photo frame containing a custom memory photo, paired with an emotional surprise message card.',
     image: '/images/photo_frame.png',
     timeline: 'Delivered in 2-4 days',
-    budget: '₹224',
-    priceRupees: 224,
+    budget: '₹280',
+    priceRupees: 280,
     category: 'keepsake',
     teamRole: 'We print your custom photo on high-gloss archival paper, frame it in a premium wooden border, design your surprise message, and courier the package right to their doorstep.',
     flowSteps: [
