@@ -97,6 +97,19 @@ export function UserHome() {
   const nudge = NUDGES[nudgeIdx];
   const greeting = GREETINGS(displayName || 'there')[greetingIdx];
 
+  const [nudgeMessage, setNudgeMessage] = useState<string | null>(null);
+
+  const handleNudgeClick = (action: string) => {
+    if (action === 'Nudge Them') {
+      setNudgeMessage("Reminders sent successfully! We've nudged all pending contributors via WhatsApp and Email. 💛");
+      setTimeout(() => setNudgeMessage(null), 3000);
+    } else if (action === 'Preview' || action === 'Complete') {
+      navigate('/event/1');
+    } else if (action === 'View Plan') {
+      navigate('/dashboard');
+    }
+  };
+
   const handleSignOut = async () => { await signOut(); navigate('/'); };
 
   return (
@@ -318,8 +331,22 @@ export function UserHome() {
 
         {/* EMOTION SYNC */}
         <motion.section initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-          className="rounded-2xl px-5 py-4 flex items-center justify-between gap-4"
+          className="rounded-2xl px-5 py-4 flex items-center justify-between gap-4 relative overflow-hidden"
           style={{ background: 'linear-gradient(135deg,rgba(212,165,116,0.1),rgba(244,132,95,0.05))', border: '1px solid rgba(212,165,116,0.2)' }}>
+          <AnimatePresence>
+            {nudgeMessage && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 z-10 flex items-center justify-center text-xs font-semibold px-4 text-center text-white"
+                style={{ background: '#5a9e6f' }}
+              >
+                {nudgeMessage}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <div className="flex items-center gap-3 min-w-0">
             <AnimatePresence mode="wait">
               <motion.span key={nudgeIdx} initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ opacity: 0 }} className="text-xl flex-shrink-0">{nudge.icon}</motion.span>
@@ -328,7 +355,13 @@ export function UserHome() {
               <motion.p key={`t-${nudgeIdx}`} initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="text-sm font-medium truncate text-[#2d2520]">{nudge.text}</motion.p>
             </AnimatePresence>
           </div>
-          <button className="text-xs font-medium px-3 py-1.5 rounded-xl flex-shrink-0 text-white transition-opacity hover:opacity-80" style={{ background: nudge.color }}>{nudge.action}</button>
+          <button
+            onClick={() => handleNudgeClick(nudge.action)}
+            className="text-xs font-medium px-3 py-1.5 rounded-xl flex-shrink-0 text-white transition-opacity hover:opacity-80"
+            style={{ background: nudge.color }}
+          >
+            {nudge.action}
+          </button>
         </motion.section>
 
         {/* EMOTIONAL EXPERIENCES (Replaces Quick Actions) */}
