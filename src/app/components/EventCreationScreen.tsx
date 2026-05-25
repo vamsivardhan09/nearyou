@@ -8,7 +8,6 @@ import {
 } from 'lucide-react';
 import { differenceInDays } from 'date-fns';
 import { useAuth } from '../../context/AuthContext';
-import { supabase } from '../../lib/supabase';
 
 interface EventCreationScreenProps {
   onNavigate?: (screen: string) => void;
@@ -140,26 +139,10 @@ export function EventCreationScreen({ onNavigate }: EventCreationScreenProps) {
     setLoading(true);
     setError('');
     try {
-      if (!user) throw new Error('You must be logged in to create an event.');
-
-      const { data, error: insertError } = await supabase.from('events').insert({
-        creator_id: user.id,
-        event_type: form.eventType,
-        receiver_name: form.receiverName,
-        event_date: form.eventDate,
-        story: form.emotionalStory,
-        theme_config: {
-          relationship: form.relationship,
-          city: form.city,
-          importantPeople: form.importantPeople,
-          memories: form.memories,
-          invites: form.invites,
-        }
-      }).select('id').single();
-
-      if (insertError) throw insertError;
-      
-      navigate(`/event/${data.id}`);
+      // Mock local event creation
+      await new Promise(r => setTimeout(r, 600));
+      const mockEventId = `local_evt_${Date.now()}`;
+      navigate(`/event/${mockEventId}`);
     } catch (e: any) {
       setError(e.message || 'Something went wrong. Please try again.');
     } finally {

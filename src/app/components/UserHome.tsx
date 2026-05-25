@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Heart, Calendar, PlusCircle, LogOut, Bell, Gift, Clock, Star, ArrowRight, Users, Sparkles, User, X, Phone, Mail, Shield, ChevronDown } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { supabase } from '../../lib/supabase';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { PACKAGES } from '../../lib/packagesData';
 import { EmotionalExperiences } from './EmotionalExperiences';
@@ -39,38 +39,15 @@ const MEMORIES = [
 
 export function UserHome() {
   const navigate = useNavigate();
-  const { displayName, signOut, user, profile } = useAuth();
+  const { displayName, signOut, user } = useAuth();
   const [nudgeIdx, setNudgeIdx] = useState(0);
   const [greetingIdx] = useState(() => Math.floor(Math.random() * 3));
   const [showProfile, setShowProfile] = useState(false);
-
-  const [dbEvents, setDbEvents] = useState<any[]>([]);
-  const [dbDates, setDbDates] = useState<any[]>([]);
 
   useEffect(() => {
     const t = setInterval(() => setNudgeIdx(i => (i + 1) % NUDGES.length), 3500);
     return () => clearInterval(t);
   }, []);
-
-  useEffect(() => {
-    if (!user) return;
-    async function fetchData() {
-      const { data: eventsData } = await supabase
-        .from('events')
-        .select('*')
-        .eq('creator_id', user?.id)
-        .order('event_date', { ascending: true });
-      if (eventsData) setDbEvents(eventsData);
-
-      const { data: datesData } = await supabase
-        .from('important_dates')
-        .select('*')
-        .eq('user_id', user?.id)
-        .order('date', { ascending: true });
-      if (datesData) setDbDates(datesData);
-    }
-    fetchData();
-  }, [user]);
 
   const nudge = NUDGES[nudgeIdx];
   const greeting = GREETINGS(displayName || 'there')[greetingIdx];
@@ -115,9 +92,9 @@ export function UserHome() {
                 {/* Avatar & Name */}
                 <div className="flex flex-col items-center text-center py-6 rounded-3xl" style={{ background: 'linear-gradient(135deg, rgba(212,165,116,0.12), rgba(232,87,58,0.06))', border: '1px solid rgba(212,165,116,0.2)' }}>
                   <div className="w-20 h-20 rounded-full flex items-center justify-center text-3xl font-bold text-white mb-4 shadow-lg" style={{ background: 'linear-gradient(135deg, #d4a574, #e8573a)' }}>
-                    {(profile?.full_name || displayName)?.slice(0, 1).toUpperCase() || 'U'}
+                    {user?.fullName?.slice(0, 1).toUpperCase() || 'U'}
                   </div>
-                  <h2 className="font-bold text-xl text-[#2d2520] mb-1">{profile?.full_name || displayName}</h2>
+                  <h2 className="font-bold text-xl text-[#2d2520] mb-1">{user?.fullName || displayName}</h2>
                   <span className="text-xs font-medium px-3 py-1 rounded-full" style={{ background: 'rgba(212,165,116,0.15)', color: '#d4a574' }}>nearyou member</span>
                 </div>
 
@@ -131,7 +108,7 @@ export function UserHome() {
                     </div>
                     <div>
                       <p className="text-[10px] font-medium uppercase tracking-wider text-[#8a7968]">Full Name</p>
-                      <p className="font-semibold text-sm text-[#2d2520] mt-0.5">{profile?.full_name || '—'}</p>
+                      <p className="font-semibold text-sm text-[#2d2520] mt-0.5">{user?.fullName || '—'}</p>
                     </div>
                   </div>
 
@@ -140,8 +117,8 @@ export function UserHome() {
                       <Phone className="w-4 h-4" style={{ color: '#5a9e6f' }} />
                     </div>
                     <div>
-                      <p className="text-[10px] font-medium uppercase tracking-wider text-[#8a7968]">Email</p>
-                      <p className="font-semibold text-sm text-[#2d2520] mt-0.5">{profile?.email || user?.email || '—'}</p>
+                      <p className="text-[10px] font-medium uppercase tracking-wider text-[#8a7968]">Phone Number</p>
+                      <p className="font-semibold text-sm text-[#2d2520] mt-0.5">{user?.phone || '—'}</p>
                     </div>
                   </div>
 
@@ -325,16 +302,9 @@ export function UserHome() {
                 <button onClick={() => navigate('/dashboard')} className="text-sm font-medium text-[#d4a574] flex items-center gap-1">View all <ArrowRight className="w-3.5 h-3.5" /></button>
               </div>
               <div className="space-y-4">
-                {dbEvents.length === 0 && (
-                  <div className="p-8 text-center rounded-3xl" style={{ border: '1px dashed rgba(0,0,0,0.1)' }}>
-                    <p className="text-sm text-[#8a7968]">No scheduled surprises yet.</p>
-                  </div>
-                )}
-                {dbEvents.map((ev, i) => {
-                  const eventDate = new Date(ev.event_date);
-                  if (isNaN(eventDate.getTime())) return null;
-                  const days = differenceInDays(eventDate, new Date());
-                  const pct = 0; // we don't have memories count yet without a join, just keep it 0 or mock
+                {MOCK_EVENTS.map((ev, i) => {
+                  const days = differenceInDays(ev.date, new Date());
+                  const pct = Math.round((ev.memories / ev.target) * 100);
                   return (
                     <motion.div key={ev.id} initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
                        onClick={() => navigate(`/event/${ev.id}`)}
@@ -343,8 +313,8 @@ export function UserHome() {
                       <div className="absolute -right-8 -top-8 w-28 h-28 rounded-full blur-2xl opacity-10 group-hover:opacity-20 transition-opacity pointer-events-none" style={{ background: '#d4a574' }} />
                       <div className="flex items-start justify-between mb-4">
                         <div>
-                          <span className="text-[10px] uppercase tracking-widest font-semibold block mb-1" style={{ color: '#d4a574' }}>{ev.event_type}</span>
-                          <h3 className="font-medium text-lg text-[#2d2520]">{ev.receiver_name}'s Surprise</h3>
+                          <span className="text-[10px] uppercase tracking-widest font-semibold block mb-1" style={{ color: '#d4a574' }}>{ev.type}</span>
+                          <h3 className="font-medium text-lg text-[#2d2520]">{ev.name}'s Surprise</h3>
                         </div>
                         <span className="flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full text-[#e8573a] bg-[#e8573a]/10">
                           <Clock className="w-3 h-3" /> {days === 0 ? 'Today!' : `${days}d left`}
@@ -352,7 +322,7 @@ export function UserHome() {
                       </div>
                       <div className="flex items-center justify-between text-xs font-light mb-1.5 text-[#8a7968]">
                         <span>Memory Collection</span>
-                        <span className="text-[#d4a574] font-medium">0/10</span>
+                        <span className="text-[#d4a574] font-medium">{ev.memories}/{ev.target}</span>
                       </div>
                       <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(0,0,0,0.05)' }}>
                         <motion.div className="h-full rounded-full" style={{ background: 'linear-gradient(90deg,#d4a574,#e8573a)' }}
@@ -441,19 +411,14 @@ export function UserHome() {
                 <h2 className="font-normal text-lg text-[#2d2520]">Upcoming Dates</h2>
               </div>
               <div className="rounded-3xl p-5" style={{ background: '#ffffff', border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 8px 30px rgba(0,0,0,0.03)' }}>
-                {dbDates.length === 0 && (
-                  <p className="text-xs text-center text-[#8a7968] py-4">No upcoming dates saved.</p>
-                )}
-                {dbDates.map((item, i) => {
-                  const itemDate = new Date(item.date);
-                  if (isNaN(itemDate.getTime())) return null;
-                  const days = differenceInDays(itemDate, new Date());
+                {MOCK_DATES.map((item, i) => {
+                  const days = differenceInDays(item.date, new Date());
                   const urgent = days <= 14;
                   return (
-                    <div key={item.id} className={`flex items-center gap-3 py-3 ${i < dbDates.length - 1 ? 'border-b border-black/5' : ''}`}>
+                    <div key={item.id} className={`flex items-center gap-3 py-3 ${i < MOCK_DATES.length - 1 ? 'border-b border-black/5' : ''}`}>
                       <div className="w-10 h-10 rounded-xl flex flex-col items-center justify-center bg-black/5 border border-black/10 flex-shrink-0">
-                        <span className="text-[9px] uppercase font-medium text-[#8a7968]">{itemDate.toLocaleDateString('en-IN', { month: 'short' })}</span>
-                        <span className="text-sm font-semibold text-[#d4a574]">{itemDate.getDate()}</span>
+                        <span className="text-[9px] uppercase font-medium text-[#8a7968]">{item.date.toLocaleDateString('en-IN', { month: 'short' })}</span>
+                        <span className="text-sm font-semibold text-[#d4a574]">{item.date.getDate()}</span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-sm text-[#2d2520] truncate">{item.title}</p>

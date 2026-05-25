@@ -6,7 +6,6 @@ import {
   CheckCircle2, LogOut, ArrowLeft, TrendingUp
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { supabase } from '../../lib/supabase';
 import { differenceInDays, formatDistanceToNow, addDays, isBefore } from 'date-fns';
 
 interface DashboardScreenProps {
@@ -19,30 +18,33 @@ export function DashboardScreen({ onNavigate }: DashboardScreenProps) {
   const initials = displayName ? displayName.slice(0, 2).toUpperCase() : 'CN';
   const handleSignOut = async () => { await signOut(); navigate('/'); };
 
-  const [events, setEvents] = useState<any[]>([]);
-  const [recentMemories, setRecentMemories] = useState<any[]>([]);
-  const [importantDates, setImportantDates] = useState<any[]>([]);
+  const [events, setEvents] = useState<any[]>([
+    {
+      id: 'demo_event_1',
+      event_type: 'birthday',
+      receiver_name: 'Mom',
+      event_date: addDays(new Date(), 12).toISOString(),
+    }
+  ]);
+  const [recentMemories, setRecentMemories] = useState<any[]>([
+    { id: '1', media_type: 'photo', contributor_name: 'Rahul', created_at: new Date().toISOString(), events: { receiver_name: 'Mom' } }
+  ]);
+  const [importantDates, setImportantDates] = useState<any[]>([
+    { id: '1', title: "Mom's Birthday", date: addDays(new Date(), 12).toISOString(), type: 'birthday' },
+    { id: '2', title: 'Our Anniversary', date: addDays(new Date(), 45).toISOString(), type: 'anniversary' },
+  ]);
   const [loading, setLoading] = useState(true);
 
   // State for Add Date form
   const [showAddDate, setShowAddDate] = useState(false);
   const [newDate, setNewDate] = useState({ title: '', date: '', type: 'birthday' });
 
+  // Mock data fetch delay
   useEffect(() => {
     if (!user) return;
     setLoading(true);
-    
-    async function loadData() {
-      const { data: evts } = await supabase.from('events').select('*').eq('creator_id', user.id);
-      if (evts) setEvents(evts);
-      
-      const { data: dates } = await supabase.from('important_dates').select('*').eq('user_id', user.id).order('date', { ascending: true });
-      if (dates) setImportantDates(dates);
-      
-      setLoading(false);
-    }
-    
-    loadData();
+    const t = setTimeout(() => setLoading(false), 500);
+    return () => clearTimeout(t);
   }, [user]);
 
   // Live countdown trigger
@@ -52,20 +54,10 @@ export function DashboardScreen({ onNavigate }: DashboardScreenProps) {
     return () => clearInterval(t);
   }, []);
 
-  const handleAddDate = async () => {
-    if (!newDate.title || !newDate.date || !user) return;
-    
-    const { data, error } = await supabase.from('important_dates').insert({
-      user_id: user.id,
-      title: newDate.title,
-      date: newDate.date,
-      type: newDate.type
-    }).select().single();
-    
-    if (data) {
-      setImportantDates(prev => [...prev, data].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
-    }
-    
+  const handleAddDate = () => {
+    if (!newDate.title || !newDate.date) return;
+    const newEntry = { id: Date.now().toString(), ...newDate };
+    setImportantDates(prev => [...prev, newEntry].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()));
     setShowAddDate(false);
     setNewDate({ title: '', date: '', type: 'birthday' });
   };

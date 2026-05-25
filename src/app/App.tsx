@@ -13,7 +13,6 @@ import { MemoryStoryScreen } from './components/MemoryStoryScreen';
 import { StoryUploadScreen } from './components/StoryUploadScreen';
 import { BottomNav } from './components/BottomNav';
 import { OnboardingFlow } from '../pages/OnboardingFlow';
-import { AuthCallback } from './components/AuthCallback';
 import { useLocation } from 'react-router';
 
 // Full-screen loading state
@@ -75,8 +74,6 @@ export default function App() {
               {/* Public landing */}
               <Route path="/" element={<HomePage />} />
               <Route path="/onboarding" element={<OnboardingFlow />} />
-              {/* Supabase auth callback (magic link redirect) */}
-              <Route path="/auth/callback" element={<AuthCallback />} />
 
               {/* Public browseable */}
               <Route path="/packages" element={<PackageListingScreen />} />
