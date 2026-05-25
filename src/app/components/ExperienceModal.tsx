@@ -65,9 +65,6 @@ export function ExperienceModal({ isOpen, onClose, action, type }: ExperienceMod
       if (budget === 'grand') base += 1999;
     }
     if (discountPercent > 0) {
-      if (realWorld?.id === 'photo-frame' && (!budget || budget === 'base' || budget === '')) {
-        return 224;
-      }
       base = Math.max(0, Math.round(base * (1 - discountPercent / 100)));
     }
     return base;
