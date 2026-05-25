@@ -10,7 +10,7 @@ export const PACKAGES = [
     image: 'https://images.unsplash.com/photo-1639178952543-1c0ea3cbacaa?w=900',
     icon: Sparkles,
     accent: '#9a7a60',
-    price: '₹4,999',
+    price: '₹2,999',
     features: [
       'Unlimited multimedia archive',
       'Collaborative story collection',
@@ -32,7 +32,7 @@ export const PACKAGES = [
     image: 'https://images.unsplash.com/photo-1540076156429-35ffe82b7870?w=900',
     icon: Heart,
     accent: '#c07a6a',
-    price: '₹9,999',
+    price: '₹4,999',
     features: [
       'Intimate love timeline with shared memories',
       'Voice note collection from mutual friends',
@@ -46,28 +46,6 @@ export const PACKAGES = [
     tag: null,
   },
   {
-    id: 'wedding',
-    title: 'Wedding Surprise',
-    tagline: 'Celebrate their beautiful bond and new beginnings — together.',
-    story:
-      "A wedding is the ultimate union. We help siblings, cousins, childhood friends, and family members compile their blessings, throwback memory photos, and customized video messages, creating a cinematic tribute the couple will cherish forever.",
-    image: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=900',
-    icon: Heart,
-    accent: '#d4a574',
-    price: '₹14,999',
-    features: [
-      'Blessing messages from friends & family worldwide',
-      'Childhood memory collage of the bride and groom',
-      'Surprise screening video ready for the reception',
-      'Elegant digital scrapbook link for guests to view',
-    ],
-    participants: '10–100 people',
-    timeline: '10–20 days',
-    rating: 4.9,
-    reviews: 482,
-    tag: null,
-  },
-  {
     id: 'birthday',
     title: 'Birthday Experience',
     tagline: 'Celebrate their special day — from anywhere in the world.',
@@ -76,7 +54,7 @@ export const PACKAGES = [
     image: 'https://images.unsplash.com/photo-1583875762487-5f8f7c718d14?w=900',
     icon: Cake,
     accent: '#d4a574',
-    price: '₹14,999',
+    price: '₹6,999',
     features: [
       'Cinematic video montage of collected memories',
       'Heartfelt group messages from loved ones',
@@ -90,6 +68,28 @@ export const PACKAGES = [
     tag: 'Most Loved',
   },
   {
+    id: 'wedding',
+    title: 'Wedding Surprise',
+    tagline: 'Celebrate their beautiful bond and new beginnings — together.',
+    story:
+      "A wedding is the ultimate union. We help siblings, cousins, childhood friends, and family members compile their blessings, throwback memory photos, and customized video messages, creating a cinematic tribute the couple will cherish forever.",
+    image: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=900',
+    icon: Heart,
+    accent: '#d4a574',
+    price: '₹7,999',
+    features: [
+      'Blessing messages from friends & family worldwide',
+      'Childhood memory collage of the bride and groom',
+      'Surprise screening video ready for the reception',
+      'Elegant digital scrapbook link for guests to view',
+    ],
+    participants: '10–100 people',
+    timeline: '10–20 days',
+    rating: 4.9,
+    reviews: 482,
+    tag: null,
+  },
+  {
     id: 'parents',
     title: 'Parents Tribute',
     tagline: 'Honor the ones who shaped your world.',
@@ -98,7 +98,7 @@ export const PACKAGES = [
     image: 'https://images.unsplash.com/photo-1624448445915-97154f5e688c?w=900',
     icon: Users,
     accent: '#c19466',
-    price: '₹18,999',
+    price: '₹8,999',
     features: [
       'Family stories collected across generations',
       'Throwback photo contributions from everyone',
