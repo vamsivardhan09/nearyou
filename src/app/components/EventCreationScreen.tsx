@@ -32,12 +32,63 @@ const EVENT_TYPES = [
   { id: 'birthday', label: 'Birthday', emoji: '🎂', desc: 'A milestone worth celebrating across every mile' },
   { id: 'couple', label: 'Long Distance Couple', emoji: '💑', desc: 'Keep love alive when distance tries to dim it' },
   { id: 'parents', label: 'Parents Tribute', emoji: '🙏', desc: 'Honor those who gave you everything' },
-  { id: 'appreciation', label: 'Appreciation', emoji: '🌸', desc: 'Tell someone the difference they made in your life' },
+  { id: 'wedding', label: 'Wedding / Anniversary', emoji: '💍', desc: 'Celebrate a beautiful bond and new beginnings' },
   { id: 'reunion', label: 'Reunion Surprise', emoji: '🤗', desc: 'Make the moment of coming together unforgettable' },
   { id: 'achievement', label: 'Achievement Celebration', emoji: '🏆', desc: 'Celebrate a triumph with everyone who cheered you on' },
   { id: 'loneliness', label: 'Loneliness Support', emoji: '🕊️', desc: 'Let someone feel loved when they need it most' },
   { id: 'other', label: 'Something Else', emoji: '✨', desc: 'Every emotional story deserves to be told' },
 ];
+
+const ORGANIZATION_DETAILS: Record<string, string[]> = {
+  birthday: [
+    "Step 1: Family & Friend Outreach — We quietly collect raw videos, custom voice notes, and childhood stories from up to 50 contributors.",
+    "Step 2: Editorial Review — Our directors verify video/audio quality and structure the storyline to keep it engaging.",
+    "Step 3: Cinematic Crafting — Our editors add nostalgic soundtracks, warm overlay color grades, and seamless text transitions.",
+    "Step 4: Coordinated Reveal — We guide you on exactly how to display the surprise message on a screen or stream on their special day."
+  ],
+  couple: [
+    "Step 1: Reliving Memories — You list your favorite shared songs, locations, and inside jokes.",
+    "Step 2: Voice Collections — We securely prompt mutual friends to record brief messages about your connection.",
+    "Step 3: Custom Love Gallery — We construct a beautiful, passcode-locked digital page featuring your photo archives and emotional audio tapes.",
+    "Step 4: Synchronized Midnight Reveal — The private archive unlocks automatically at midnight on your selected anniversary date."
+  ],
+  parents: [
+    "Step 1: Generation Reunion — We quietly reach out to children, grandchildren, siblings, and old family friends.",
+    "Step 2: Media Gathering — We collect old retro photographs (and digitally restore them) along with video blessings.",
+    "Step 3: Legacy Video Crafting — We construct a heartwarming legacy film highlighting their life and impact.",
+    "Step 4: Premium Keepsake Delivery — A custom link containing the legacy film and messages is prepared, ready for a tears-guaranteed presentation."
+  ],
+  wedding: [
+    "Step 1: Gathering Blessings — We send secure, custom templates to all wedding guests and relatives who can't attend.",
+    "Step 2: Visual Compilation — We build a memory lane showing the couple's individual growth stories up to their union.",
+    "Step 3: Reception Projection Ready — We deliver a ready-to-play cinematic video in under 4K resolution optimized for theater or banquet screens.",
+    "Step 4: Guest Scrapbook — Guests scan a custom QR code at the venue to upload live wishes and view the couple's digital tribute book."
+  ],
+  reunion: [
+    "Step 1: Group Synchronization — We help you invite old classmates or friends to record their throwback memories.",
+    "Step 2: Dynamic Montage — We compile the clips using high-energy music from the era when you were together.",
+    "Step 3: Coordinated Stream — We host the final video on a shared group dashboard where everyone can comment live during the playback.",
+    "Step 4: Live Call Setup — Integrate a group video call link directly into the reveal page to celebrate the reunion instantly."
+  ],
+  achievement: [
+    "Step 1: Hype Circle Setup — We reach out to teachers, mentors, family, and peers to capture their expressions of pride.",
+    "Step 2: Timeline Creation — We document the hard work, milestones, and challenges overcome.",
+    "Step 3: Victory Video Editing — We edit a high-impact cinematic tribute celebrating the triumph.",
+    "Step 4: Dashboard Spotlight — The video is showcased on their dashboard alongside custom congratulatory letters from their support network."
+  ],
+  loneliness: [
+    "Step 1: Quiet Nurturing — We gather soft, comforting audio notes, jokes, and words of encouragement from their close circle.",
+    "Step 2: Warmth Curation — We build a calming, pastel-colored digital support wall showing they are never truly alone.",
+    "Step 3: Step-by-Step Delivery — We space out the messages so they receive positive reminders throughout their week.",
+    "Step 4: Continuous Support — The private dashboard remains active forever, serving as a comfort zone they can revisit anytime."
+  ],
+  other: [
+    "Step 1: Freeform Ideation — You describe the unique emotional moment or milestone you wish to capture.",
+    "Step 2: Personal Consultation — Our experience coordinators arrange a quick chat to map out custom collection details.",
+    "Step 3: Tailored Production — We design custom themes, timelines, and formats matching your specific idea.",
+    "Step 4: Customized Delivery Plan — We structure a reveal flow that fits the environment (digital stream, physical card, or live event)."
+  ]
+};
 
 const RELATIONSHIP_OPTIONS = [
   'Son / Daughter', 'Partner / Spouse', 'Parent', 'Friend', 'Sibling', 'Colleague', 'Other',
@@ -299,6 +350,30 @@ export function EventCreationScreen({ onNavigate }: EventCreationScreenProps) {
                     </button>
                   ))}
                 </div>
+
+                {form.eventType && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-6 p-6 rounded-3xl border"
+                    style={{ background: 'linear-gradient(135deg, rgba(212,165,116,0.08), rgba(232,87,58,0.03))', borderColor: 'rgba(212,165,116,0.18)' }}
+                  >
+                    <div className="flex items-center gap-2 mb-4">
+                      <Sparkles className="w-4.5 h-4.5 text-[#d4a574]" />
+                      <h3 className="font-semibold text-xs uppercase tracking-wider text-[#d4a574]">
+                        Celebration Organization & Delivery Roadmap
+                      </h3>
+                    </div>
+                    <div className="space-y-3">
+                      {ORGANIZATION_DETAILS[form.eventType]?.map((detail: string, index: number) => (
+                        <div key={index} className="flex items-start gap-3 text-xs text-[#8a7968] leading-relaxed">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#d4a574] mt-1.5 flex-shrink-0" />
+                          <span>{detail}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
               </div>
             )}
 

@@ -25,10 +25,27 @@ export function ExperienceModal({ isOpen, onClose, action, type }: ExperienceMod
   const [selectedRealWorld, setSelectedRealWorld] = useState<RealWorldExperience | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<'all' | 'keepsake' | 'personal' | 'grand'>('all');
 
+  // File Upload State
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [uploadingStatus, setUploadingStatus] = useState<'idle' | 'uploading' | 'success'>('idle');
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setUploadedFile(file);
+      setUploadingStatus('uploading');
+      setTimeout(() => {
+        setUploadingStatus('success');
+      }, 1000);
+    }
+  };
+
   useEffect(() => {
     if (!isOpen) {
       setSelectedRealWorld(null);
       setCategoryFilter('all');
+      setUploadedFile(null);
+      setUploadingStatus('idle');
       setStep(1);
       setReceiver(''); setDate(''); setMessage(''); setLocation(''); setBudget('');
     }
@@ -257,17 +274,39 @@ export function ExperienceModal({ isOpen, onClose, action, type }: ExperienceMod
                   className="w-full px-5 py-4 rounded-2xl text-sm font-medium outline-none resize-none transition-all focus:border-[#d4a574]/60 placeholder:text-[#8a7968]/50"
                   style={{ background: '#fafafa', border: '1.5px solid rgba(0,0,0,0.08)', color: '#2d2520' }} />
 
-                <div className="w-full border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition-colors hover:bg-[#d4a574]/5 hover:border-[#d4a574]/30"
-                  style={{ borderColor: 'rgba(0,0,0,0.1)' }}>
-                  <Upload className="w-6 h-6 mb-2 text-[#d4a574]" />
-                  <p className="text-sm font-medium text-[#2d2520]">
-                    {realWorld?.id === 'photo-frame' ? 'Upload Photo for Frame' : 'Upload Memories'}
-                  </p>
-                  <p className="text-xs font-light text-[#8a7968] text-center mt-1">
-                    {realWorld?.id === 'photo-frame' 
-                      ? 'Upload the photo to be printed and fitted inside the physical keepsake frame' 
-                      : 'Videos, audio notes, or photos for the surprise'}
-                  </p>
+                <div>
+                  <input
+                    type="file"
+                    id="modal-file-upload"
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                  <div
+                    onClick={() => document.getElementById('modal-file-upload')?.click()}
+                    className="w-full border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center cursor-pointer transition-all hover:bg-[#d4a574]/5 hover:border-[#d4a574]/30"
+                    style={{
+                      borderColor: uploadingStatus === 'success' ? '#5a9e6f' : 'rgba(0,0,0,0.1)',
+                      background: uploadingStatus === 'success' ? 'rgba(90,158,111,0.03)' : 'transparent'
+                    }}
+                  >
+                    <Upload className="w-6 h-6 mb-2" style={{ color: uploadingStatus === 'success' ? '#5a9e6f' : '#d4a574' }} />
+                    <p className="text-sm font-medium text-[#2d2520]">
+                      {uploadingStatus === 'success' 
+                        ? 'File Attached Successfully!' 
+                        : uploadingStatus === 'uploading'
+                        ? 'Attaching...'
+                        : (realWorld?.id === 'photo-frame' ? 'Upload Photo for Frame' : 'Upload Memories')}
+                    </p>
+                    <p className="text-xs font-light text-[#8a7968] text-center mt-1">
+                      {uploadingStatus === 'success'
+                        ? `${uploadedFile?.name} (${(uploadedFile!.size / 1024 / 1024).toFixed(2)} MB)`
+                        : uploadingStatus === 'uploading'
+                        ? 'Reading details...'
+                        : (realWorld?.id === 'photo-frame' 
+                          ? 'Upload the photo to be printed and fitted inside the physical keepsake frame' 
+                          : 'Videos, audio notes, or photos for the surprise')}
+                    </p>
+                  </div>
                 </div>
 
                 <button onClick={handleSubmit} disabled={submitting || !receiver}

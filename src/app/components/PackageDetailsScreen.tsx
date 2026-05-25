@@ -181,6 +181,62 @@ export function PackageDetailsScreen() {
         </div>
       </section>
 
+      {/* ── RATINGS & REVIEWS SECTION ────────────────────── */}
+      <section className="py-16 px-6" style={{ background: '#ffffff' }}>
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <span className="text-xs tracking-widest uppercase font-semibold mb-3 block text-[#d4a574]">Reviews</span>
+            <h2 className="font-light text-3xl text-[#2d2520]">What loved ones felt.</h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 mb-8">
+            <div className="p-6 rounded-2xl text-center border border-black/5" style={{ background: '#fafafa' }}>
+              <h3 className="text-5xl font-light text-[#e8573a] mb-2">{pkg.rating}</h3>
+              <div className="flex justify-center gap-1 mb-2">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-4 h-4 fill-current text-[#d4a574]" />
+                ))}
+              </div>
+              <p className="text-xs text-[#8a7968]">Average customer rating</p>
+            </div>
+            <div className="p-6 rounded-2xl text-center border border-black/5" style={{ background: '#fafafa' }}>
+              <h3 className="text-5xl font-light text-[#e8573a] mb-2">99.8%</h3>
+              <p className="text-xs font-medium text-[#2d2520] mb-2">On-Time Delivery</p>
+              <p className="text-xs text-[#8a7968]">Guaranteed execution</p>
+            </div>
+            <div className="p-6 rounded-2xl text-center border border-black/5" style={{ background: '#fafafa' }}>
+              <h3 className="text-5xl font-light text-[#e8573a] mb-2">{pkg.reviews}+</h3>
+              <p className="text-xs font-medium text-[#2d2520] mb-2">Surprises Completed</p>
+              <p className="text-xs text-[#8a7968]">Across 25+ cities</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {[
+              { author: "Aditya R.", rating: 5, date: "2 days ago", comment: "Absolutely tear-jerking experience. My family was blown away by the storytelling quality. Every rupee spent was worth the emotions." },
+              { author: "Sania M.", rating: 5, date: "1 week ago", comment: "The coordination was flawless. I didn't have to chase anyone. They did everything with such care and delivered it exactly on time." }
+            ].map((rev, idx) => (
+              <div key={idx} className="p-6 rounded-2xl border border-black/5" style={{ background: '#fafafa' }}>
+                <div className="flex justify-between items-start mb-2">
+                  <div>
+                    <span className="font-semibold text-sm text-[#2d2520]">{rev.author}</span>
+                    <div className="flex gap-0.5 mt-1">
+                      {[...Array(rev.rating)].map((_, i) => (
+                        <Star key={i} className="w-3 h-3 fill-current text-[#d4a574]" />
+                      ))}
+                    </div>
+                  </div>
+                  <span className="text-xs text-[#8a7968]">{rev.date}</span>
+                </div>
+                <p className="text-xs font-light leading-relaxed text-[#8a7968]">
+                  "{rev.comment}"
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* ── CTA ─────────────────────────────────────────── */}
       <section className="pt-10 px-6 pb-20">
         <div className="max-w-3xl mx-auto">
@@ -204,7 +260,7 @@ export function PackageDetailsScreen() {
                 className="px-10 py-5 rounded-2xl text-base font-medium flex items-center justify-center gap-2 mx-auto transition-all hover:scale-105"
                 style={{ background: '#ffffff', color: '#e8573a', boxShadow: '0 12px 30px rgba(0,0,0,0.1)' }}
               >
-                Create Experience <ArrowRight className="w-5 h-5" />
+                Book Now <ArrowRight className="w-5 h-5" />
               </button>
             </div>
           </motion.div>

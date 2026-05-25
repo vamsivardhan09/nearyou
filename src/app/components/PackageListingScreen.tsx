@@ -140,8 +140,20 @@ export function PackageListingScreen({ onNavigate }: PackageListingScreenProps) 
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2 mt-auto text-sm font-medium transition-colors text-[#d4a574]">
-                    View Experience Details <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  <div className="flex items-center gap-4 mt-auto pt-4 border-t border-black/5">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/create?type=${pkg.id}`);
+                      }}
+                      className="px-5 py-2.5 rounded-xl text-xs font-semibold text-white transition-all hover:opacity-90 shadow-sm"
+                      style={{ background: 'linear-gradient(135deg, #d4a574 0%, #e8573a 100%)' }}
+                    >
+                      Book Now
+                    </button>
+                    <span className="text-xs font-semibold text-[#8a7968] group-hover:text-[#d4a574] transition-colors flex items-center gap-1">
+                      View Details <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                    </span>
                   </div>
                 </div>
               </motion.div>
