@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Phone, User, ArrowRight, Sparkles, Heart, RotateCcw, CheckCircle2 } from 'lucide-react';
+import { X, Phone, User, ArrowRight, Sparkles, Heart, RotateCcw, CheckCircle2, Shield } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 // ── Constants ────────────────────────────────────────────────────────────────
@@ -303,6 +303,28 @@ export function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps) {
                       {['🔒 Secure', '✨ Private', '💛 Free'].map(l => (
                         <span key={l} className="text-[11px]" style={{ color: '#8a7968' }}>{l}</span>
                       ))}
+                    </div>
+
+                    {/* Admin Portal below small icon */}
+                    <div className="mt-6 flex flex-col items-center justify-center gap-1.5 pt-4 border-t border-black/5">
+                      <div 
+                        onClick={() => {
+                          onClose();
+                          window.location.href = '/admin';
+                        }} 
+                        className="w-8 h-8 rounded-full bg-[#d4a574]/10 flex items-center justify-center cursor-pointer hover:bg-[#d4a574]/20 transition-all hover:scale-105"
+                      >
+                        <Shield className="w-4 h-4 text-[#d4a574]" />
+                      </div>
+                      <button 
+                        onClick={() => {
+                          onClose();
+                          window.location.href = '/admin';
+                        }} 
+                        className="text-xs font-medium text-[#d4a574]/80 hover:text-[#d4a574] hover:underline"
+                      >
+                        Admin Control Login
+                      </button>
                     </div>
                   </motion.div>
                 )}

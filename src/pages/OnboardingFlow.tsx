@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Heart, Sparkles, User, Phone, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Heart, Sparkles, User, Phone, CheckCircle2, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const OTP_LENGTH = 4;
@@ -139,9 +139,22 @@ export function OnboardingFlow() {
           <span>Get Started</span><ArrowRight className="w-5 h-5" />
         </motion.button>
         <p className="text-[#5a4030] text-xs text-center mt-5 font-light">By continuing you agree to our Terms & Privacy</p>
-        <button onClick={() => navigate('/admin')} className="text-xs text-center mt-3 text-[#d4a574]/80 hover:text-[#d4a574] hover:underline font-medium mx-auto">
-          🛡️ Admin Control Login
-        </button>
+        
+        {/* Admin Portal below small icon */}
+        <div className="mt-6 flex flex-col items-center justify-center gap-1.5 pt-3 border-t border-[#d4a574]/10">
+          <div 
+            onClick={() => navigate('/admin')}
+            className="w-8 h-8 rounded-full bg-[#d4a574]/10 flex items-center justify-center cursor-pointer hover:bg-[#d4a574]/20 transition-all hover:scale-105"
+          >
+            <Shield className="w-4 h-4 text-[#d4a574]" />
+          </div>
+          <button 
+            onClick={() => navigate('/admin')} 
+            className="text-xs text-center text-[#d4a574]/80 hover:text-[#d4a574] hover:underline font-medium"
+          >
+            Admin Control Login
+          </button>
+        </div>
       </div>
     </motion.div>
   );
@@ -225,9 +238,21 @@ export function OnboardingFlow() {
             <span key={l} className="text-xs font-light" style={{ color: '#5a4030' }}>{l}</span>
           ))}
         </div>
-        <button onClick={() => navigate('/admin')} className="text-xs text-center mt-6 text-[#d4a574]/80 hover:text-[#d4a574] hover:underline font-medium block mx-auto">
-          🛡️ Admin Control Login
-        </button>
+        {/* Admin Portal below small icon */}
+        <div className="mt-8 flex flex-col items-center justify-center gap-1.5 pt-5 border-t border-[#d4a574]/10">
+          <div 
+            onClick={() => navigate('/admin')}
+            className="w-8 h-8 rounded-full bg-[#d4a574]/10 flex items-center justify-center cursor-pointer hover:bg-[#d4a574]/20 transition-all hover:scale-105"
+          >
+            <Shield className="w-4 h-4 text-[#d4a574]" />
+          </div>
+          <button 
+            onClick={() => navigate('/admin')} 
+            className="text-xs text-center text-[#d4a574]/80 hover:text-[#d4a574] hover:underline font-medium"
+          >
+            Admin Control Login
+          </button>
+        </div>
       </div>
     </motion.div>
   );
