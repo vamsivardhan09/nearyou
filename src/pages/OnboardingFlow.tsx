@@ -92,6 +92,15 @@ export function OnboardingFlow() {
     <motion.div key="splash" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 1.05 }}
       className="relative flex flex-col min-h-screen overflow-hidden"
       style={{ background: '#fdfbf8' }}>
+      
+      {/* Top right Admin Portal trigger */}
+      <button 
+        onClick={() => navigate('/admin')}
+        className="absolute top-6 right-6 z-20 px-3.5 py-1.5 rounded-full text-[10px] font-semibold tracking-wider uppercase border border-[#d4a574]/30 text-[#d4a574] bg-[#d4a574]/5 hover:bg-[#d4a574]/10 transition-all flex items-center gap-1 shadow-sm"
+      >
+        <span>Admin Portal</span>
+        <span>🛡️</span>
+      </button>
       {/* Orbs */}
       {[
         { size: 'w-80 h-80', pos: '-top-20 -left-20', color: 'rgba(212,165,116,0.2)', delay: 0 },
@@ -142,6 +151,15 @@ export function OnboardingFlow() {
     <motion.div key="details" initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -40 }}
       className="relative flex flex-col min-h-screen overflow-hidden"
       style={{ background: '#fdfbf8' }}>
+      
+      {/* Top right Admin Portal trigger */}
+      <button 
+        onClick={() => navigate('/admin')}
+        className="absolute top-6 right-6 z-20 px-3.5 py-1.5 rounded-full text-[10px] font-semibold tracking-wider uppercase border border-[#d4a574]/30 text-[#d4a574] bg-[#d4a574]/5 hover:bg-[#d4a574]/10 transition-all flex items-center gap-1 shadow-sm"
+      >
+        <span>Admin Portal</span>
+        <span>🛡️</span>
+      </button>
       <motion.div animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2] }} transition={{ duration: 7, repeat: Infinity }}
         className="absolute -top-20 -right-20 w-80 h-80 rounded-full pointer-events-none"
         style={{ background: 'radial-gradient(circle,rgba(212,165,116,0.15),transparent 70%)' }} />
