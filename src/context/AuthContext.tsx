@@ -50,6 +50,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     };
     setUser(newUser);
     localStorage.setItem('nearyou_mock_user', JSON.stringify(newUser));
+    
+    // Also save to nearyou_all_users list in localStorage
+    try {
+      const allUsersStr = localStorage.getItem('nearyou_all_users');
+      const allUsers = allUsersStr ? JSON.parse(allUsersStr) : [];
+      if (!allUsers.some((u: any) => u.phone === phone)) {
+        allUsers.push(newUser);
+        localStorage.setItem('nearyou_all_users', JSON.stringify(allUsers));
+      }
+    } catch (e) {
+      console.warn("Could not save to all users database", e);
+    }
   };
 
   const signOut = () => {
