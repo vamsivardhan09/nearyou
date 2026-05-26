@@ -371,7 +371,7 @@ export function AdminScreen() {
 
   const filteredBookings = bookings.filter(b => {
     if (filterStatus === 'all') return true;
-    return b.status.toLowerCase() === filterStatus.toLowerCase();
+    return b.status?.toLowerCase() === filterStatus.toLowerCase();
   });
 
   // Render Login Panel

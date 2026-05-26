@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, MapPin, Upload, Sparkles, Heart } from 'lucide-react';
+import { X, Calendar, MapPin, Upload, Sparkles, Heart, QrCode } from 'lucide-react';
 import { useEffect } from 'react';
 import { DigitalAction, RealWorldExperience, REAL_WORLD_EXPERIENCES } from '../../lib/experienceData';
 import { recordAndCheckBooking } from '../../lib/fraudProtection';
@@ -989,7 +989,7 @@ export function ExperienceModal({ isOpen, onClose, action, type }: ExperienceMod
                                  boxShadow: '0 10px 25px rgba(212, 165, 116, 0.25)'
                                }}>
                             <div className="w-full h-full rounded-[26px] bg-white p-3 flex items-center justify-center overflow-hidden">
-                              <img src="/images/payment_qr.jpg" alt="UPI QR Code" className="w-full h-full object-contain" />
+                              <QrCode className="w-full h-full text-[#2d2520]" strokeWidth={1} />
                             </div>
                           </div>
                           

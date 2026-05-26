@@ -11,6 +11,7 @@ import { SingleEventDashboard } from './components/SingleEventDashboard';
 import { GalleryHomeScreen } from './components/GalleryHomeScreen';
 import { MemoryStoryScreen } from './components/MemoryStoryScreen';
 import { StoryUploadScreen } from './components/StoryUploadScreen';
+import { FeedbackScreen } from './components/FeedbackScreen';
 import { BottomNav } from './components/BottomNav';
 import { OnboardingFlow } from '../pages/OnboardingFlow';
 import { useLocation, useNavigate } from 'react-router';
@@ -115,10 +116,16 @@ export default function App() {
               <Route path="/event/:id/upload" element={<MemoryUploadScreen />} />
               <Route path="/event/:id/gallery" element={<GalleryHomeScreen />} />
 
+              {/* Packages */}
+              <Route path="/packages" element={<PackageListingScreen />} />
+              <Route path="/package/:id" element={<PackageDetailsScreen />} />
+
               {/* Gallery & Memory Stories */}
               <Route path="/gallery" element={<GalleryHomeScreen />} />
               <Route path="/gallery/:templateId" element={<MemoryStoryScreen />} />
               <Route path="/gallery/:templateId/upload" element={<StoryUploadScreen />} />
+
+              <Route path="/feedback" element={<FeedbackScreen />} />
 
               {/* Admin Panel */}
               <Route path="/admin" element={<AdminScreen />} />
