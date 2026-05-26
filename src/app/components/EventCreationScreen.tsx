@@ -191,7 +191,10 @@ export function EventCreationScreen({ onNavigate }: EventCreationScreenProps) {
   const canNext = () => {
     if (step === 1) return !!form.eventType;
     if (step === 2) return form.receiverName.trim().length >= 2 && !!form.eventDate;
-    if (step === 3) return form.emotionalStory.trim().length >= 10;
+    if (step === 3) {
+      const len = form.emotionalStory.trim().length + form.memories.trim().length + form.importantPeople.trim().length;
+      return len >= 3;
+    }
     return true;
   };
 
@@ -703,7 +706,7 @@ export function EventCreationScreen({ onNavigate }: EventCreationScreenProps) {
 
       {/* ── FIXED BOTTOM CTA ────────────────────────────── */}
       <div
-        className="fixed bottom-0 left-0 right-0 backdrop-blur-md px-6 py-5"
+        className="fixed bottom-0 left-0 right-0 backdrop-blur-md px-6 py-5 z-50"
         style={{
           background: 'rgba(255,255,255,0.85)',
           borderTop: '1px solid rgba(0,0,0,0.06)',
