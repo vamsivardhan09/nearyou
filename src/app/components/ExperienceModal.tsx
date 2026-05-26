@@ -988,8 +988,8 @@ export function ExperienceModal({ isOpen, onClose, action, type }: ExperienceMod
                                  height: '185px',
                                  boxShadow: '0 10px 25px rgba(212, 165, 116, 0.25)'
                                }}>
-                            <div className="w-full h-full rounded-[26px] bg-white p-3 flex items-center justify-center overflow-hidden">
-                              <QrCode className="w-full h-full text-[#2d2520]" strokeWidth={1} />
+                            <div className="w-full h-full rounded-[26px] bg-white p-2 flex items-center justify-center overflow-hidden">
+                              <img src="/images/payment_qr.jpg" alt="UPI QR Code" className="w-full h-full object-contain rounded-2xl" />
                             </div>
                           </div>
                           
